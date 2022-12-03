@@ -1,0 +1,8 @@
+# ignore PhpStorm temporary files
+.idea/
+
+# ignore compiled files
+*.js.map
+
+# ignore node modules
+node_modules/
