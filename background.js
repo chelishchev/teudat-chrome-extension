@@ -1,14 +1,19 @@
-class Analyzer
+class RequestTokenExtractor
 {
 	constructor()
+	{
+		this.registerListener();
+	}
+
+	registerListener()
 	{
 		chrome.webRequest.onSendHeaders.addListener(
 			this.onSendHeaders.bind(this),
 			{
-				urls: ["*://*/*"],
-				types: ["main_frame", "sub_frame", "xmlhttprequest"]
+				urls: ['*://*/*'],
+				types: ['main_frame', 'sub_frame', 'xmlhttprequest'],
 			},
-			["requestHeaders"]
+			['requestHeaders'],
 		);
 	}
 
@@ -17,7 +22,6 @@ class Analyzer
 		const config = this.getConfig(details.requestHeaders);
 		if (config['application-api-key'])
 		{
-			//config['departments'] = this.getDepartments();
 			console.warn('onpageRequest', config, details);
 			chrome.storage.sync.set({config});
 		}
@@ -44,4 +48,4 @@ class Analyzer
 	}
 }
 
-const analyzer = new Analyzer();
+new RequestTokenExtractor();
