@@ -1,4 +1,4 @@
-button {
+button.person-button {
   height: 100px;
   width: 100px;
   outline: none;
@@ -6,6 +6,14 @@ button {
   border: none;
   border-radius: 2px;
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+button.person-button:active {
+  transform: scale(1.1);
+}
+
+button.person-button.current {
+  font-weight: bold;
 }
 
 button.current {
