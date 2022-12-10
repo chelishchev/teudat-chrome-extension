@@ -10,21 +10,6 @@ export class PersonManager
 		this.people = [];
 	}
 
-	ready()
-	{
-		return new Promise((resolve, reject) => {
-			chrome.tabs.query({active: true, currentWindow: true}, tabs => {
-				const [tab] = tabs;
-				chrome.scripting.executeScript({
-					target: {tabId: tab.id},
-					files: ['dist/page-worker.bundle.js'],
-				}, () => {
-					resolve();
-				});
-			});
-		});
-	}
-
 	loadPeopleFromConfig()
 	{
 		return new Promise((resolve, reject) => {
