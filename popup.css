@@ -1,3 +1,17 @@
+button {
+  transition: all 0.3s ease;
+}
+
+button.find-button {
+  height: 100px;
+  width: 100px;
+  outline: none;
+  margin: 10px;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
 button.person-button {
   height: 100px;
   width: 100px;
@@ -6,17 +20,47 @@ button.person-button {
   border: none;
   border-radius: 2px;
   cursor: pointer;
-  transition: all 0.3s ease;
 }
-button.person-button:active {
+button:active {
   transform: scale(1.1);
 }
 
 button.person-button.current {
   font-weight: bold;
-}
-
-button.current {
   box-shadow: 0 0 0 2px white,
               0 0 0 4px black;
+}
+
+
+.find-button {
+  position: relative;
+  padding: 12px 24px;
+  border: none;
+  font-size: 16px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.find-button.find-in-progress:before {
+  content: "";
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  margin-top: -8px;
+  margin-left: -8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #000;
+  border-top-color: transparent;
+  animation: loading 1s linear infinite;
+}
+
+@keyframes loading {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

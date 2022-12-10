@@ -76,6 +76,7 @@ export class PersonManager
 
 	renderTo(node)
 	{
+		this.registerClickHandlerForPersonButton();
 		this.getPeople().forEach((person, index) => {
 			const personNode = this.createButtonNodeByPerson(person, index);
 			node.appendChild(personNode);
