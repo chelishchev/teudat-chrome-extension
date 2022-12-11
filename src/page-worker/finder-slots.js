@@ -112,8 +112,9 @@ export class FinderSlots
 				"mode": "cors",
 				"credentials": "include"
 			}).then(response => response.json().then(data => {
+				const status = response.status;
 				resolve({department, data});
-				console.log('RESPONSE', {department, data});
+				console.log('RESPONSE', {department, data}, status);
 			}));
 
 		});
