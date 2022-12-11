@@ -6,6 +6,7 @@ export class FinderSlots
 {
 	constructor(departments, resultTable)
 	{
+		this.preventContinue = false;
 		/** @type {ResultTable} */
 		this.resultTable = resultTable;
 		/** @type {Departments} */
@@ -42,6 +43,10 @@ export class FinderSlots
 					action: 'page-worker-work-with',
 					department: departmentInfo,
 				});
+				if (this.preventContinue)
+				{
+					return {department: departmentInfo, data: {Success: false, Message: 'STOPPED'}};
+				}
 
 				return await this.requestSlots(departmentInfo);
 			};
@@ -65,6 +70,10 @@ export class FinderSlots
 					{
 						this.highlightAddress(department, []);
 					}
+				}
+				else
+				{
+					this.resultTable.changeStatusAsError();
 				}
 			});
 			autoQueue.enqueue(this.#sleep);
@@ -123,8 +132,12 @@ export class FinderSlots
 				const status = response.status;
 				resolve({department, data});
 				console.log('RESPONSE', {department, data}, status);
-			}));
+			})).catch((error) => {
+				this.preventContinue = true;
+				resolve({department: department, data: {Success: false, Message: error.message}});
 
+				console.log('BAD RESPONSE', error);
+			});
 		});
 	}
 
