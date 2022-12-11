@@ -21,6 +21,9 @@ export class FinderSlots
 		});
 	}
 
+	#sleep() {
+		return new Promise(resolve => setTimeout(resolve, TIMEOUT));
+	}
 	start()
 	{
 		const departments = this.departments;
@@ -57,6 +60,7 @@ export class FinderSlots
 					}
 				}
 			});
+			autoQueue.enqueue(this.#sleep);
 		}
 
 		autoQueue.enqueue(() => new Promise(resolve => { resolve(); })).then(() => {
@@ -108,10 +112,8 @@ export class FinderSlots
 				"mode": "cors",
 				"credentials": "include"
 			}).then(response => response.json().then(data => {
-				setTimeout(function () {
-					console.log('RESPONSE', {department, data});
-					resolve({department, data});
-				}, TIMEOUT);
+				resolve({department, data});
+				console.log('RESPONSE', {department, data});
 			}));
 
 		});
