@@ -34,6 +34,7 @@ export class Departments
 		if (!department.hasProcessed)
 		{
 			department.LocationName = this.#fromBinary(department.LocationName);
+			department.Label = department.ExtRef.replace(/ShowDate_/g, '');
 			department.hasProcessed = true;
 		}
 	}
@@ -70,21 +71,21 @@ export class Departments
 		return [
 			2161,
 			2243,
-			// 2155,
-			// 2099,
-			// 2163,
-			// 2165,
-			// 2095,
-			// 2153,
-			// 2113,
-			// 2245,
-			// 2167,
-			// 2110,
-			// 2150,
-			// 2146,
-			// 2215,
-			// 2159,
-			// 2219,
+			2155,
+			2099,
+			2163,
+			2165,
+			2095,
+			2153,
+			2113,
+			2245,
+			2167,
+			2110,
+			2150,
+			2146,
+			2215,
+			2159,
+			2219,
 		];
 	}
 

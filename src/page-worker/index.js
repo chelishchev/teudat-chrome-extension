@@ -1,6 +1,7 @@
 import {Departments} from "./departments";
 import {FormFiller} from "./form-filler";
 import {FinderSlots} from "./finder-slots";
+import {ResultTable} from "./result-table";
 
 chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
 	console.log('page-worker chrome.runtime.onMessage request', request, Date.now());
@@ -13,8 +14,9 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
 	}
 	else if (request.action === 'find')
 	{
+		const resultTable = new ResultTable();
 		const departments = new Departments();
-		const finderSlots = new FinderSlots(departments);
+		const finderSlots = new FinderSlots(departments, resultTable);
 
 		await finderSlots.loadRequestConfig();
 		finderSlots.start();

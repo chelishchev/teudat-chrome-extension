@@ -4,8 +4,10 @@ import {AutoQueue} from "./queue";
 const TIMEOUT = 3300;
 export class FinderSlots
 {
-	constructor(departments)
+	constructor(departments, resultTable)
 	{
+		/** @type {ResultTable} */
+		this.resultTable = resultTable;
 		/** @type {Departments} */
 		this.departments = departments;
 		this.tokenConfig = {};
@@ -26,11 +28,16 @@ export class FinderSlots
 	}
 	start()
 	{
+		const findLocationBlock = document.querySelector(".locationSearchInput.ng-isolate-scope").parentNode.parentNode;
+		findLocationBlock.prepend(this.resultTable.createNode());
+		this.resultTable.changeStatusAsWorking();
+
 		const departments = this.departments;
 		const autoQueue = new AutoQueue();
 
 		const _ = ({departmentInfo} = {}) => {
 			return async () => {
+				this.resultTable.changeDepartment(departmentInfo.Label);
 				await this.sendMessage({
 					action: 'page-worker-work-with',
 					department: departmentInfo,
@@ -64,6 +71,7 @@ export class FinderSlots
 		}
 
 		autoQueue.enqueue(() => new Promise(resolve => { resolve(); })).then(() => {
+			this.resultTable.changeStatusAsFinished();
 			this.sendMessage({
 				action: 'page-worker-finish',
 			});
@@ -135,10 +143,21 @@ export class FinderSlots
 		let highlightData = {};
 		if (!data || !data.length)
 		{
+			this.resultTable.appendResult({
+				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
+				name: department.Label,
+			})
+
 			highlightData.color = "currentcolor";
 		}
 		else
 		{
+			this.resultTable.appendResult({
+				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
+				name: department.Label,
+				date: data[0].calendarDate.substring(0, 10),
+			})
+
 			highlightData.color = "darkseagreen";
 			highlightData.text = data[0].calendarDate.substring(0, 10);
 		}
