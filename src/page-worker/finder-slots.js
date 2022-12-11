@@ -27,16 +27,13 @@ export class FinderSlots
 		const autoQueue = new AutoQueue();
 
 		const _ = ({departmentInfo} = {}) => {
-			return () => {
-				return new Promise(resolve => {
-					this.sendMessage({
-						action: 'page-worker-work-with',
-						department: departmentInfo,
-					});
-					this.requestSlots(departmentInfo).then(({department, data}) => {
-						resolve({department, data});
-					});
+			return async () => {
+				await this.sendMessage({
+					action: 'page-worker-work-with',
+					department: departmentInfo,
 				});
+
+				return await this.requestSlots(departmentInfo);
 			};
 		};
 
