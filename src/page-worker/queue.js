@@ -1,4 +1,4 @@
-class Queue
+export class Queue
 {
     constructor()
     {
@@ -21,7 +21,7 @@ class Queue
     }
 }
 
-class AutoQueue extends Queue
+export class AutoQueue extends Queue
 {
     constructor()
     {
