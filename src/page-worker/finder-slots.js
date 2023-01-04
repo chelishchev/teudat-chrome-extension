@@ -17,7 +17,7 @@ export class FinderSlots
 	loadRequestConfig()
 	{
 		return new Promise(resolve => {
-			chrome.storage.sync.get("config", ({config}) => {
+			chrome.storage.local.get("config", ({config}) => {
 				this.tokenConfig = config;
 				resolve();
 			});
