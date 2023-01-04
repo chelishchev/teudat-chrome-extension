@@ -8,22 +8,45 @@ class RequestTokenExtractor
 	registerListener()
 	{
 		chrome.webRequest.onSendHeaders.addListener(
-			this.onSendHeaders.bind(this),
+			this.handleSendHeaders.bind(this),
 			{
 				urls: ['*://*/*'],
 				types: ['main_frame', 'sub_frame', 'xmlhttprequest'],
 			},
 			['requestHeaders'],
 		);
+
+		chrome.webRequest.onCompleted.addListener(
+			this.handleSiteOpened.bind(this),
+			{
+				urls: ['https://myvisit.com/*'],
+				types: ['main_frame'],
+			}
+		);
 	}
 
-	onSendHeaders(details)
+	handleSiteOpened(details) {
+		const tabId = details.tabId;
+
+		if (details.statusCode !== 200) {
+			return;
+		}
+
+		chrome.scripting.executeScript({
+			target: {tabId: tabId},
+			files: ['dist/page-worker.bundle.js'],
+		}, () => {
+			console.log('page-worker.bundle.js injected');
+		});
+	}
+
+	handleSendHeaders(details)
 	{
 		const config = this.getConfig(details.requestHeaders);
 		if (config['application-api-key'])
 		{
 			console.warn('onpageRequest', config, details);
-			chrome.storage.sync.set({config});
+			chrome.storage.local.set({config});
 		}
 	}
 
