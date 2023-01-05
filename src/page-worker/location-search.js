@@ -1,6 +1,7 @@
 import {Departments} from "./departments";
 
 const TIMEOUT = 3*60*1000;
+const SEEMS_CLOSE_DATE = 7*24*60*60*1000;
 
 export class LocationSearch {
 	constructor(departments, resultTable, xhrSubstitute) {
@@ -10,6 +11,7 @@ export class LocationSearch {
 		this.departments = departments;
 		/** @type {XhrSubstitute} */
 		this.xhrSubstitute = xhrSubstitute;
+		this.resultTableInserted = false;
 		this.tokenConfig = {};
 
 		this.xhrSubstitute.addHandler("https://central.myvisit.com/CentralAPI/LocationSearch", (url, response) => {
@@ -54,15 +56,24 @@ export class LocationSearch {
 				"method": "GET",
 				"mode": "cors",
 				"credentials": "include"
-			}).then(response => response.json().then(data => {
-				const status = response.status;
-				resolve(data);
-				console.log('RESPONSE', data, status);
-			})).catch((error) => {
-				// this.preventContinue = true;
+			}).then(response => {
+				if(response.ok) {
+					return response.json().then(data => {
+						const status = response.status;
+						resolve(data);
+						console.log('RESPONSE', data, status);
+					});
+				}
+				//todo sendMessage "NEED TO RELOAD", "NEED TO AUTH"
+				// response.status
 				resolve({});
 
-				console.log('BAD RESPONSE', error);
+				console.warn('BAD RESPONSE', response);
+
+			}).catch((error) => {
+				resolve({});
+
+				console.warn('BAD RESPONSE', error);
 			});
 		});
 	}
@@ -79,7 +90,13 @@ export class LocationSearch {
 			return;
 		}
 
-		findLocationBlock.prepend(this.resultTable.createNode());
+		if (!this.resultTableInserted) {
+			findLocationBlock.prepend(this.resultTable.createNode());
+			this.resultTableInserted = true;
+		} else {
+			this.resultTable.clearResults();
+		}
+
 		this.resultTable.changeStatusAsWorking();
 		this.resultTable.changeDepartment(Date.now());
 
@@ -91,7 +108,7 @@ export class LocationSearch {
 				return;
 			}
 
-			this.highlightAddress(departmentInfo);
+			this.addDepartmentToResultTable(departmentInfo);
 		});
 
 		console.log('WAITING FOR NEXT REQUEST', Date.now(), Date.now() + TIMEOUT);
@@ -102,25 +119,17 @@ export class LocationSearch {
 		}, TIMEOUT);
 	}
 
-	getCurrentDateString()
-	{
-		const currentDate = new Date();
-		const ye = new Intl.DateTimeFormat('en', {year: 'numeric'}).format(currentDate);
-		const mo = new Intl.DateTimeFormat('en', {month: '2-digit'}).format(currentDate);
-		const da = new Intl.DateTimeFormat('en', {day: '2-digit'}).format(currentDate);
-
-		return `${ye}-${mo}-${da}`;
+	isCloseEnough(dateString) {
+		return (new Date(dateString)).getTime() - Date.now() < SEEMS_CLOSE_DATE;
 	}
 
-	highlightAddress(department)
+	addDepartmentToResultTable(department)
 	{
 		const probablyDateString = department.LocationName;
 		const regex = /(\d{2})\/(\d{2})\/(\d{4})/;
 
 		const match = probablyDateString.match(regex);
 		const date = match[0] ? `${match[3]}-${match[2]}-${match[1]}` : null;
-
-		console.log(probablyDateString,'date', date);
 
 		if (!date)
 		{
@@ -132,11 +141,16 @@ export class LocationSearch {
 		}
 		else
 		{
+			const closeEnough = this.isCloseEnough(date);
 			this.resultTable.appendResult({
 				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
 				name: department.Label || department.ExtRef,
 				date: date,
-			})
+			}, closeEnough);
+
+			if(closeEnough) {
+				//todo sendMessage "WOW! Close date"
+			}
 		}
 	}
 }

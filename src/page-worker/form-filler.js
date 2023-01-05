@@ -156,6 +156,7 @@ export class FormFiller {
         setTimeout(() => {
             const element = document.querySelector(selector);
             if (element) {
+                //todo sendMessage "Enter sms code"
                 element.focus();
             }
         }, delay);
