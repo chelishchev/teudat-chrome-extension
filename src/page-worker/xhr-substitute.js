@@ -1,9 +1,30 @@
 export default class XhrSubstitute {
     constructor() {
+        this.mapHandlers = new Map();
+    }
+
+    refineUrl(link) {
+        const url = new URL(link);
+
+        return url.origin + url.pathname;
+    }
+
+    addHandler(url, handler) {
+        this.mapHandlers.set(this.refineUrl(url), handler);
+    }
+
+    processRequest(event) {
+        if (event.target.readyState === 4 && event.target.status === 200) {
+            const handler = this.mapHandlers.get(this.refineUrl(event.target.responseURL));
+            if (handler) {
+                handler(event.target.responseURL, event.target.response);
+            }
+        }
     }
 
     substitute() {
         const OriginalXHR = window.XMLHttpRequest;
+        const self = this;
 
         window.XMLHttpRequest = function () {
             return new Proxy(new OriginalXHR(), {
@@ -17,21 +38,9 @@ export default class XhrSubstitute {
                     return value;
                 },
                 set(target, property, value) {
-                    if (property === 'onreadystatechange') {
+                    if (property === 'onreadystatechange' || property === 'onload') {
                         target[property] = function (event) {
-                            if (event.target.readyState === 4 && event.target.status === 200) {
-                                console.log('GOT onreadystatechange response', event, event.target.response, target);
-                            }
-
-                            value.apply(target, arguments);
-                        }
-                        return true;
-                    }
-                    if (property === 'onload') {
-                        target[property] = function (event) {
-                            if (event.target.readyState === 4 && event.target.status === 200) {
-                                console.log('GOT onload response', event, target, target.status, target.response);
-                            }
+                            self.processRequest(event);
 
                             value.apply(target, arguments);
                         }
