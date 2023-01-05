@@ -6,6 +6,27 @@
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.myvisit.com/*"
+      ],
+      "run_at": "document_start",
+      "js": [
+        "content-script.js"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "matches": [
+        "https://*.myvisit.com/*"
+      ],
+      "resources": [
+        "injected.js"
+      ]
+    }
+  ],
   "permissions": ["storage", "activeTab", "scripting", "webRequest", "background"],
   "host_permissions": ["https://*.myvisit.com/"],
   "action": {
