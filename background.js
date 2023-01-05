@@ -10,7 +10,7 @@ class RequestTokenExtractor
 		chrome.webRequest.onSendHeaders.addListener(
 			this.handleSendHeaders.bind(this),
 			{
-				urls: ['*://*/*'],
+				urls: ['https://central.myvisit.com/*'],
 				types: ['main_frame', 'sub_frame', 'xmlhttprequest'],
 			},
 			['requestHeaders'],
@@ -32,12 +32,12 @@ class RequestTokenExtractor
 			return;
 		}
 
-		// chrome.scripting.executeScript({
-		// 	target: {tabId: tabId},
-		// 	files: ['dist/page-worker.bundle.js'],
-		// }, () => {
-		// 	console.log('page-worker.bundle.js injected');
-		// });
+		chrome.scripting.executeScript({
+			target: {tabId: tabId},
+			files: ['injected-by-background.js'],
+		}, () => {
+			console.log('injected-by-background.js injected');
+		});
 	}
 
 	handleSendHeaders(details)
@@ -45,8 +45,12 @@ class RequestTokenExtractor
 		const config = this.getConfig(details.requestHeaders);
 		if (config['application-api-key'])
 		{
-			console.warn('onpageRequest', config, details);
 			chrome.storage.local.set({config});
+
+			const message = {
+				action: 'sync-config',
+			};
+			chrome.tabs.sendMessage(details.tabId, message, response => {});
 		}
 	}
 
@@ -56,6 +60,7 @@ class RequestTokenExtractor
 			'preparedvisittoken': null,
 			'application-api-key': null,
 			'application-name': null,
+			'user-agent': null,
 		};
 
 		for (const header of headers)
