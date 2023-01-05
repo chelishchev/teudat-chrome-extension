@@ -147,7 +147,7 @@ export class FormFiller {
             if (this.isVisible(continueButton)) {
                 continueButton.click();
             } else {
-                console.log('submitFormAfterDelay continueButton not found', Date.now());
+                console.warn('submitFormAfterDelay continueButton not found', Date.now());
             }
         }, delay);
     }

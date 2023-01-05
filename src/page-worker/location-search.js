@@ -13,17 +13,18 @@ export class LocationSearch {
 		this.xhrSubstitute = xhrSubstitute;
 		this.resultTableInserted = false;
 		this.tokenConfig = {};
+		this.originalLocationSearchUrl = null;
 
 		this.xhrSubstitute.addHandler("https://central.myvisit.com/CentralAPI/LocationSearch", (url, response) => {
-			console.log('https://central.myvisit.com/CentralAPI/LocationSearch', response, )
 			this.handleLocationSearchResponse(JSON.parse(response));
+			this.originalLocationSearchUrl = url;
 		});
 	}
 
 	loadRequestConfig()
 	{
 		const syncConfig = document.body.dataset.syncConfig;
-		if (!syncConfig)
+		if (syncConfig === undefined)
 		{
 			this.tokenConfig = {};
 		}
@@ -48,8 +49,17 @@ export class LocationSearch {
 	queryLocation() {
 		return new Promise((resolve, reject) => {
 			console.log('START REQUEST', Date.now());
-			fetch(`https://central.myvisit.com/CentralAPI/LocationSearch?currentPage=1&isFavorite=false&orderBy=Distance&organizationId=56&position=%7B%22lat%22:%2232.8184%22,%22lng%22:%2234.9885%22,%22accuracy%22:1440%7D&resultsInPage=100&serviceTypeId=156&src=mvws`, {
-				"headers": this.getRequestHeaders(),
+			const requestHeaders = this.getRequestHeaders();
+
+			if (requestHeaders["preparedvisittoken"] === undefined) {
+				console.warn("Can't find preparedvisittoken");
+				resolve({});
+
+				return;
+			}
+
+			fetch(this.originalLocationSearchUrl, {
+				"headers": requestHeaders,
 				"referrer": "https://myvisit.com/",
 				"referrerPolicy": "no-referrer-when-downgrade",
 				"body": null,
@@ -61,7 +71,6 @@ export class LocationSearch {
 					return response.json().then(data => {
 						const status = response.status;
 						resolve(data);
-						console.log('RESPONSE', data, status);
 					});
 				}
 				//todo sendMessage "NEED TO RELOAD", "NEED TO AUTH"
@@ -79,8 +88,10 @@ export class LocationSearch {
 	}
 
 	handleLocationSearchResponse(response) {
-		console.log('handleLocationSearchResponse', response);
 		if (!response || !response.Success || !response.Results) {
+
+			this.resultTable.changeStatusAsError();
+
 			return;
 		}
 
@@ -98,7 +109,6 @@ export class LocationSearch {
 		}
 
 		this.resultTable.changeStatusAsWorking();
-		this.resultTable.changeDepartment(Date.now());
 
 		const departments = this.departments;
 		const goodDepartmentServiceIds = departments.getGoodDepartmentServiceIds();
@@ -130,12 +140,13 @@ export class LocationSearch {
 
 		const match = probablyDateString.match(regex);
 		const date = match[0] ? `${match[3]}-${match[2]}-${match[1]}` : null;
+		const label = department.ExtRef.replace(/ShowDate_/g, '')
 
 		if (!date)
 		{
 			this.resultTable.appendResult({
 				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
-				name: department.Label || department.ExtRef,
+				name: label,
 			})
 
 		}
@@ -144,7 +155,7 @@ export class LocationSearch {
 			const closeEnough = this.isCloseEnough(date);
 			this.resultTable.appendResult({
 				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
-				name: department.Label || department.ExtRef,
+				name: label,
 				date: date,
 			}, closeEnough);
 
