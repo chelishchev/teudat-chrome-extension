@@ -24,12 +24,11 @@ export class LocationSearch {
 	loadRequestConfig()
 	{
 		const syncConfig = document.body.dataset.syncConfig;
-		if (syncConfig === undefined)
-		{
+		if (syncConfig === undefined) {
 			this.tokenConfig = {};
+		} else {
+			this.tokenConfig = JSON.parse(syncConfig);
 		}
-
-		this.tokenConfig = JSON.parse(syncConfig);
 	}
 
 	getRequestHeaders()
