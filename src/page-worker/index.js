@@ -2,6 +2,15 @@ import {Departments} from "./departments";
 import {FormFiller} from "./form-filler";
 import {FinderSlots} from "./finder-slots";
 import {ResultTable} from "./result-table";
+import XhrSubstitute from "./xhr-substitute";
+
+(new XhrSubstitute()).substitute();
+
+(new FormFiller()).fill({
+	phoneNumber: '***REMOVED***',
+	idNumber: '***REMOVED***',
+	shortMobilePhone: '***REMOVED***',
+});
 
 chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
 	console.log('page-worker chrome.runtime.onMessage request', request, Date.now());

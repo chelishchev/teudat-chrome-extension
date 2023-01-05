@@ -23,7 +23,7 @@
         "https://*.myvisit.com/*"
       ],
       "resources": [
-        "injected.js"
+        "dist/page-worker.bundle.js"
       ]
     }
   ],

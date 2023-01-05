@@ -32,12 +32,12 @@ class RequestTokenExtractor
 			return;
 		}
 
-		chrome.scripting.executeScript({
-			target: {tabId: tabId},
-			files: ['dist/page-worker.bundle.js'],
-		}, () => {
-			console.log('page-worker.bundle.js injected');
-		});
+		// chrome.scripting.executeScript({
+		// 	target: {tabId: tabId},
+		// 	files: ['dist/page-worker.bundle.js'],
+		// }, () => {
+		// 	console.log('page-worker.bundle.js injected');
+		// });
 	}
 
 	handleSendHeaders(details)
