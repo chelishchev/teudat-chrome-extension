@@ -46,7 +46,11 @@ export class ResultTable {
         this.statusValue.innerText = 'Error. Please refresh the page and try again.';
     }
 
-    appendResult(department) {
+    clearResults() {
+        this.resultList.innerHTML = '';
+    }
+
+    appendResult(department, payAttention = false) {
         const link = department.href;
         const name = department.name;
         const date = department.date;
@@ -62,6 +66,9 @@ export class ResultTable {
             hrefLink = this.createElement('a', null, formattedDate);
             hrefLink.href = link;
             hrefLink.target = '_blank';
+            if (payAttention) {
+                hrefLink.style.color = 'forestgreen';
+            }
         }
 
         const departmentNode = this.createElement('li', null, [
