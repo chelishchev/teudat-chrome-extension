@@ -3,8 +3,17 @@ import {FormFiller} from "./form-filler";
 import {FinderSlots} from "./finder-slots";
 import {ResultTable} from "./result-table";
 import XhrSubstitute from "./xhr-substitute";
+import {LocationSearch} from "./location-search";
 
-(new XhrSubstitute()).substitute();
+const xhrSubstitute = new XhrSubstitute();
+xhrSubstitute.substitute();
+
+const resultTable = new ResultTable();
+const departments = new Departments();
+const locationSearch = new LocationSearch(
+	departments, resultTable, xhrSubstitute
+);
+
 
 (new FormFiller()).fill({
 	phoneNumber: '***REMOVED***',
