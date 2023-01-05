@@ -13,24 +13,24 @@ export class ResultTable {
             this.statusValue = this.createElement('span', null, 'Working...'),
         ]);
 
-        const currentDepartmentInWork = this.createRow([
-            this.createElement('span', null, 'Work with Department:&nbsp;'),
-            this.departmentValue = this.createElement('span', null, '...'),
-        ]);
+        // const currentDepartmentInWork = this.createRow([
+        //     this.createElement('span', null, 'Work with Department:&nbsp;'),
+        //     this.departmentValue = this.createElement('span', null, '...'),
+        // ]);
 
         const results = this.createRow([
             this.resultList = this.createElement('ul', null)
         ]);
 
         container.appendChild(statusRow);
-        container.appendChild(currentDepartmentInWork);
+        // container.appendChild(currentDepartmentInWork);
         container.appendChild(results);
 
         return container;
     }
 
     changeDepartment(departmentName) {
-        this.departmentValue.innerText = departmentName;
+        // this.departmentValue.innerText = departmentName;
     }
 
     changeStatusAsWorking() {
