@@ -1,7 +1,7 @@
 import {Departments} from "./departments";
 
 const TIMEOUT = 3*60*1000;
-const SEEMS_CLOSE_DATE = 7*24*60*60*1000;
+const SEEMS_CLOSE_DATE = 14*24*60*60*1000;
 
 export class LocationSearch {
 	constructor(departments, resultTable, xhrSubstitute) {
@@ -107,6 +107,7 @@ export class LocationSearch {
 			this.resultTable.clearResults();
 		}
 
+		this.resultTable.changeLastCheckDatetime();
 		this.resultTable.changeStatusAsWorking();
 
 		const departments = this.departments;
@@ -159,6 +160,7 @@ export class LocationSearch {
 			}, closeEnough);
 
 			if(closeEnough) {
+				console.warn('CLOSE ENOUGH', label, date, Date.now());
 				//todo sendMessage "WOW! Close date"
 			}
 		}

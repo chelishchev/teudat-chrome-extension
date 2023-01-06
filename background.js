@@ -45,6 +45,7 @@ class RequestTokenExtractor
 		const config = this.getConfig(details.requestHeaders);
 		if (config['application-api-key'])
 		{
+			console.log('requestHeaders: ', config);
 			chrome.storage.local.set({config});
 
 			const message = {

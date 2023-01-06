@@ -1,7 +1,7 @@
 export class ResultTable {
     constructor() {
         this.statusValue = null;
-        this.departmentValue = null;
+        this.lastCheckDatetime = null;
         this.resultList = null;
     }
 
@@ -18,12 +18,17 @@ export class ResultTable {
         //     this.departmentValue = this.createElement('span', null, '...'),
         // ]);
 
+        const lastCheckDatetime = this.createRow([
+            this.createElement('span', null, 'Last check:&nbsp;'),
+            this.lastCheckDatetime = this.createElement('span', null, '...'),
+        ]);
+
         const results = this.createRow([
             this.resultList = this.createElement('ul', null)
         ]);
 
         container.appendChild(statusRow);
-        // container.appendChild(currentDepartmentInWork);
+        container.appendChild(lastCheckDatetime);
         container.appendChild(results);
 
         return container;
@@ -31,6 +36,19 @@ export class ResultTable {
 
     changeDepartment(departmentName) {
         // this.departmentValue.innerText = departmentName;
+    }
+
+    changeLastCheckDatetime() {
+        const currentDateTime = (new Date()).toLocaleTimeString('ru-RU', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+        });
+
+        this.lastCheckDatetime.innerText = currentDateTime;
     }
 
     changeStatusAsWorking() {
