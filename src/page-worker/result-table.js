@@ -1,16 +1,20 @@
 export class ResultTable {
-    constructor() {
+    constructor({gifPath}) {
         this.statusValue = null;
         this.lastCheckDatetime = null;
         this.resultList = null;
+        this.gifPath = gifPath;
+        this.loadingImage = null;
     }
 
     createNode() {
         const container = this.createElement('div', 'teudat-container');
+        this.loadingImage = this.createLoadingImage();
 
         const statusRow = this.createRow([
             this.createElement('span', null, 'Status:&nbsp;'),
             this.statusValue = this.createElement('span', null, 'Working...'),
+            this.loadingImage,
         ]);
 
         // const currentDepartmentInWork = this.createRow([
@@ -62,6 +66,7 @@ export class ResultTable {
 
     changeStatusAsError() {
         this.statusValue.innerText = 'Error. Please refresh the page and try again.';
+        this.loadingImage.style.display = 'none';
     }
 
     clearResults() {
@@ -102,6 +107,15 @@ export class ResultTable {
         children.forEach(child => row.appendChild(child));
 
         return row;
+    }
+
+    createLoadingImage() {
+        const img = document.createElement('img');
+        img.src = this.gifPath;
+        img.style.width = '25px';
+        img.style.height = '25px';
+
+        return img;
     }
 
     createElement(type, className, innerHTML) {

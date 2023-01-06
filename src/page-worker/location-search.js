@@ -94,7 +94,7 @@ export class LocationSearch {
 			return;
 		}
 
-		const findLocationBlock = document.querySelector(".locationSearchInput.ng-isolate-scope").parentNode.parentNode;
+		const findLocationBlock = document.querySelector(".locationSearchInput.ng-isolate-scope")?.parentNode.parentNode;
 		if (!findLocationBlock) {
 			console.warn("Can't find location block");
 			return;

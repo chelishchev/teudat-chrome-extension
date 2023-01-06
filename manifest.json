@@ -23,7 +23,8 @@
         "https://*.myvisit.com/*"
       ],
       "resources": [
-        "dist/page-worker.bundle.js"
+        "dist/page-worker.bundle.js",
+        "images/process.gif"
       ]
     }
   ],
