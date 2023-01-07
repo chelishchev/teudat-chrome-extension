@@ -5,9 +5,11 @@ const NODE_IDS = {
 }
 export class FormFiller {
 
-    constructor() {
+    constructor({backendService}) {
         this.observer = this.buildIntersectionObserver();
         this.expectedNodesWithCallbacks = new Map();
+        /** @type {BackendService} */
+        this.backendService = backendService;
     }
 
     buildIntersectionObserver() {
@@ -156,7 +158,7 @@ export class FormFiller {
         setTimeout(() => {
             const element = document.querySelector(selector);
             if (element) {
-                //todo sendMessage "Enter sms code"
+                this.backendService.notify('enterSmsCode');
                 element.focus();
             }
         }, delay);

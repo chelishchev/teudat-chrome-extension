@@ -4,7 +4,9 @@ const TIMEOUT = 3*60*1000;
 const SEEMS_CLOSE_DATE = 14*24*60*60*1000;
 
 export class LocationSearch {
-	constructor(departments, resultTable, xhrSubstitute) {
+	constructor({departments, resultTable, xhrSubstitute, backendService}) {
+		/** @type {BackendService} */
+		this.backendService = backendService;
 		/** @type {ResultTable} */
 		this.resultTable = resultTable;
 		/** @type {Departments} */
@@ -72,7 +74,8 @@ export class LocationSearch {
 						resolve(data);
 					});
 				}
-				//todo sendMessage "NEED TO RELOAD", "NEED TO AUTH"
+				//todo work with "NEED TO RELOAD", "NEED TO AUTH". Probably need to reload page when status 403
+				this.backendService.notify('reloadPage');
 				// response.status
 				resolve({});
 
@@ -161,7 +164,7 @@ export class LocationSearch {
 
 			if(closeEnough) {
 				console.warn('CLOSE ENOUGH', label, date, Date.now());
-				//todo sendMessage "WOW! Close date"
+				this.backendService.notify('closeDate', {department: label, date});
 			}
 		}
 	}

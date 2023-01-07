@@ -4,24 +4,28 @@ import {ResultTable} from "./result-table";
 import XhrSubstitute from "./xhr-substitute";
 import {LocationSearch} from "./location-search";
 import {MouseEventSimulator} from "./mouse-simulator";
+import {BackendService} from "./backend-service";
 
 const xhrSubstitute = new XhrSubstitute();
 xhrSubstitute.substitute();
 
 (new MouseEventSimulator()).randomize();
 
+const token = 'wSoSKdefRxkqCIUpXRKzNS';
+const backendService = new BackendService(token);
+
 const gifPath = document.documentElement.dataset.gifPath;
 const resultTable = new ResultTable({
 	gifPath,
 });
 const departments = new Departments();
-const locationSearch = new LocationSearch(
-	departments, resultTable, xhrSubstitute
+new LocationSearch(
+	{departments, resultTable, xhrSubstitute, backendService}
 );
 
 delete document.documentElement.dataset.gifPath;
 
-(new FormFiller()).fill({
+(new FormFiller({backendService})).fill({
 	phoneNumber: '***REMOVED***',
 	idNumber: '***REMOVED***',
 	shortMobilePhone: '***REMOVED***',
