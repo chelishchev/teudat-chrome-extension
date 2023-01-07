@@ -23,6 +23,25 @@ class RequestTokenExtractor
 				types: ['main_frame'],
 			}
 		);
+
+		chrome.runtime.onInstalled.addListener(details => {
+			if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+				chrome.runtime.openOptionsPage(() => {
+					console.log('Installed. Options page opened');
+				});
+			}
+			if (details.reason === chrome.runtime.OnInstalledReason.UPDATE) {
+				chrome.storage.sync.get('personalToken').then((data) => {
+					if (!data.personalToken) {
+						chrome.runtime.openOptionsPage(() => {
+							console.log('Updated. Options page opened');
+						});
+					}
+				});
+
+				// chrome.runtime.setUninstallURL('https://example.com/extension-survey');
+			}
+		});
 	}
 
 	handleSiteOpened(details) {
