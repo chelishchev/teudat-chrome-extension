@@ -25,8 +25,4 @@ new LocationSearch(
 
 delete document.documentElement.dataset.gifPath;
 
-(new FormFiller({backendService})).fill({
-	phoneNumber: '***REMOVED***',
-	idNumber: '***REMOVED***',
-	shortMobilePhone: '***REMOVED***',
-});
+(new FormFiller({backendService})).fillByMySelf();

@@ -42,6 +42,12 @@ export class FormFiller {
         this.observer.observe(node);
     }
 
+    fillByMySelf() {
+        this.backendService.getUserData().then((person) => {
+            this.fill(person);
+        });
+    }
+
     fill(person) {
         this.fillIDTeudat(person.idNumber);
         this.fillPhoneShort(person.shortMobilePhone);
