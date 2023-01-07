@@ -10,6 +10,10 @@ export class FormFiller {
         this.expectedNodesWithCallbacks = new Map();
         /** @type {BackendService} */
         this.backendService = backendService;
+
+        this.notifyShouldEnterSmsCode = this.debounce(() => {
+            this.backendService.notify('enterSmsCode');
+        }, 800)
     }
 
     buildIntersectionObserver() {
@@ -164,8 +168,9 @@ export class FormFiller {
         setTimeout(() => {
             const element = document.querySelector(selector);
             if (element) {
-                this.backendService.notify('enterSmsCode');
                 element.focus();
+
+                this.notifyShouldEnterSmsCode();
             }
         }, delay);
     }
