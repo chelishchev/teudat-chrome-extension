@@ -1,7 +1,6 @@
 import {Departments} from "./departments";
 
 const TIMEOUT = 3*60*1000;
-const SEEMS_CLOSE_DATE = 14*24*60*60*1000;
 
 export class LocationSearch {
 	constructor({departments, resultTable, xhrSubstitute, backendService}) {
@@ -13,6 +12,7 @@ export class LocationSearch {
 		this.departments = departments;
 		/** @type {XhrSubstitute} */
 		this.xhrSubstitute = xhrSubstitute;
+		this.fallback = null;
 		this.resultTableInserted = false;
 		this.tokenConfig = {};
 		this.originalLocationSearchUrl = null;
@@ -97,6 +97,18 @@ export class LocationSearch {
 			return;
 		}
 
+		if (!this.hasResultDateInLocationName(response.Results[0])) {
+			console.warn("Can't find date in location name");
+
+			if (this.fallback) {
+				console.warn("Fall back to original location search");
+
+				this.fallback();
+			}
+
+			return;
+		}
+
 		const findLocationBlock = document.querySelector(".locationSearchInput.ng-isolate-scope")?.parentNode.parentNode;
 		if (!findLocationBlock) {
 			console.warn("Can't find location block");
@@ -132,16 +144,20 @@ export class LocationSearch {
 		}, TIMEOUT);
 	}
 
-	isCloseEnough(dateString) {
-		return (new Date(dateString)).getTime() - Date.now() < SEEMS_CLOSE_DATE;
+	hasResultDateInLocationName(department) {
+		return this.matchDateFromLocationName(department.LocationName) !== null;
+	}
+
+	matchDateFromLocationName(locationName) {
+		const regex = /(\d{2})\/(\d{2})\/(\d{4})/;
+
+		return locationName.match(regex);
 	}
 
 	addDepartmentToResultTable(department)
 	{
 		const probablyDateString = department.LocationName;
-		const regex = /(\d{2})\/(\d{2})\/(\d{4})/;
-
-		const match = probablyDateString.match(regex);
+		const match = this.matchDateFromLocationName(probablyDateString);
 		const date = match[0] ? `${match[3]}-${match[2]}-${match[1]}` : null;
 		const label = department.ExtRef.replace(/ShowDate_/g, '')
 
@@ -151,21 +167,18 @@ export class LocationSearch {
 				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
 				name: label,
 			})
-
 		}
 		else
 		{
-			const closeEnough = this.isCloseEnough(date);
 			this.resultTable.appendResult({
 				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
 				name: label,
 				date: date,
-			}, closeEnough);
-
-			if(closeEnough) {
-				console.warn('CLOSE ENOUGH', label, date, Date.now());
-				this.backendService.notify('closeDate', {department: label, date});
-			}
+			});
 		}
+	}
+
+	fallbackWhenDateNotInLabel(fallback) {
+		this.fallback = fallback;
 	}
 }

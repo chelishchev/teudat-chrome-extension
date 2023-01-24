@@ -1,14 +1,19 @@
 import {Departments} from "./departments";
 import {AutoQueue} from "./queue";
 
-const TIMEOUT = 3300;
+const MAX_RESPONSE_RESULT = 2;
+const TIMEOUT = 4*1000;
+const TIMEOUT_TO_REPEAT = 3*60*1000;
 export class FinderSlots
 {
-	constructor(departments, resultTable)
+	constructor({departments, resultTable, backendService})
 	{
 		this.preventContinue = false;
+		/** @type {BackendService} */
+		this.backendService = backendService;
 		/** @type {ResultTable} */
 		this.resultTable = resultTable;
+		this.resultTableInserted = false;
 		/** @type {Departments} */
 		this.departments = departments;
 		this.tokenConfig = {};
@@ -16,21 +21,34 @@ export class FinderSlots
 
 	loadRequestConfig()
 	{
-		return new Promise(resolve => {
-			chrome.storage.local.get("config", ({config}) => {
-				this.tokenConfig = config;
-				resolve();
-			});
-		});
+		const syncConfig = document.body.dataset.syncConfig;
+		if (syncConfig === undefined) {
+			this.tokenConfig = {};
+		} else {
+			this.tokenConfig = JSON.parse(syncConfig);
+		}
 	}
 
 	#sleep() {
 		return new Promise(resolve => setTimeout(resolve, TIMEOUT));
 	}
-	start()
+
+	async start()
 	{
-		const findLocationBlock = document.querySelector(".locationSearchInput.ng-isolate-scope").parentNode.parentNode;
-		findLocationBlock.prepend(this.resultTable.createNode());
+		const findLocationBlock = document.querySelector(".locationSearchInput.ng-isolate-scope")?.parentNode.parentNode;
+		if (!findLocationBlock) {
+			console.warn("Can't find location block");
+			return;
+		}
+
+		if (!this.resultTableInserted) {
+			findLocationBlock.prepend(this.resultTable.createNode());
+			this.resultTableInserted = true;
+		} else {
+			this.resultTable.clearResults();
+		}
+
+		this.resultTable.changeLastCheckDatetime();
 		this.resultTable.changeStatusAsWorking();
 
 		const departments = this.departments;
@@ -38,6 +56,7 @@ export class FinderSlots
 
 		const _ = ({departmentInfo} = {}) => {
 			return async () => {
+				await this.loadRequestConfig();
 				this.resultTable.changeDepartment(departmentInfo.Label);
 				await this.sendMessage({
 					action: 'page-worker-work-with',
@@ -80,10 +99,16 @@ export class FinderSlots
 		}
 
 		autoQueue.enqueue(() => new Promise(resolve => { resolve(); })).then(() => {
-			this.resultTable.changeStatusAsFinished();
+			this.resultTable.changeStatusAsContinue();
+			console.log('WAITING FOR NEXT REQUEST', Date.now(), Date.now() + TIMEOUT);
+
 			this.sendMessage({
 				action: 'page-worker-finish',
 			});
+
+			setTimeout(() => {
+				this.start();
+			}, TIMEOUT_TO_REPEAT);
 		});
 	}
 
@@ -118,22 +143,42 @@ export class FinderSlots
 	requestSlots(department)
 	{
 		return new Promise((resolve, reject) => {
+			console.log('START REQUEST', Date.now());
+			const requestHeaders = this.getRequestHeaders();
+
+			if (requestHeaders["preparedvisittoken"] === undefined) {
+				console.warn("Can't find preparedvisittoken");
+				resolve({department: department, data: {Success: false, Message: 'Can\'t find preparedvisittoken'}});
+
+				return;
+			}
+
 			const currentDateString = this.getCurrentDateString();
 
-			fetch(`https://central.myvisit.com/CentralAPI/SearchAvailableDates?maxResults=31&serviceId=${department.ServiceId}&startDate=${currentDateString}`, {
-				"headers": this.getRequestHeaders(),
+			fetch(`https://central.myvisit.com/CentralAPI/SearchAvailableDates?maxResults=${MAX_RESPONSE_RESULT}&serviceId=${department.ServiceId}&startDate=${currentDateString}`, {
+				"headers": requestHeaders,
 				"referrer": "https://myvisit.com/",
 				"referrerPolicy": "no-referrer-when-downgrade",
 				"body": null,
 				"method": "GET",
 				"mode": "cors",
 				"credentials": "include"
-			}).then(response => response.json().then(data => {
-				const status = response.status;
-				resolve({department, data});
-				console.log('RESPONSE', {department, data}, status);
-			})).catch((error) => {
+			}).then(response => {
+				if(response.ok) {
+					return response.json().then(data => {
+						const status = response.status;
+						resolve({department, data});
+						console.log('RESPONSE', {department, data}, status);
+					});
+				}
+
+				this.backendService.notify('reloadPage');
+				resolve({department: department, data: {Success: false, Message: 'BAD RESPONSE'}});
+
+				console.warn('BAD RESPONSE', response);
+			}).catch((error) => {
 				this.preventContinue = true;
+				this.backendService.notify('reloadPage');
 				resolve({department: department, data: {Success: false, Message: error.message}});
 
 				console.log('BAD RESPONSE', error);

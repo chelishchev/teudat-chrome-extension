@@ -1,5 +1,10 @@
+
+const SEEMS_CLOSE_DATE = 14*24*60*60*1000;
+
 export class ResultTable {
-    constructor({gifPath}) {
+    constructor({gifPath, backendService}) {
+		/** @type {BackendService} */
+		this.backendService = backendService;
         this.statusValue = null;
         this.lastCheckDatetime = null;
         this.resultList = null;
@@ -39,6 +44,7 @@ export class ResultTable {
     }
 
     changeDepartment(departmentName) {
+        this.statusValue.innerText = 'Working...' + ' ' + departmentName;
         // this.departmentValue.innerText = departmentName;
     }
 
@@ -61,7 +67,10 @@ export class ResultTable {
 
     changeStatusAsFinished() {
         this.statusValue.innerText = 'Finished';
-        this.changeDepartment('end');
+    }
+
+    changeStatusAsContinue() {
+        this.statusValue.innerText = 'Will refresh in few minutes...';
     }
 
     changeStatusAsError() {
@@ -73,13 +82,23 @@ export class ResultTable {
         this.resultList.innerHTML = '';
     }
 
-    appendResult(department, payAttention = false) {
+	isCloseEnough(dateString) {
+		return (new Date(dateString)).getTime() - Date.now() < SEEMS_CLOSE_DATE;
+	}
+
+    appendResult(department) {
         const link = department.href;
         const name = department.name;
         const date = department.date;
 
         let hrefLink = this.createElement('span', null, 'no slots');
         if (date) {
+            const closeEnough = this.isCloseEnough(date);
+			if(closeEnough) {
+				console.warn('CLOSE ENOUGH', name, date, Date.now());
+				this.backendService.notify('closeDate', {department: name, date});
+			}
+
             const formattedDate = (new Date(date)).toLocaleDateString('ru-RU', {
                 year: 'numeric',
                 month: '2-digit',
@@ -89,7 +108,7 @@ export class ResultTable {
             hrefLink = this.createElement('a', null, formattedDate);
             hrefLink.href = link;
             hrefLink.target = '_blank';
-            if (payAttention) {
+            if (closeEnough) {
                 hrefLink.style.color = 'forestgreen';
             }
         }
