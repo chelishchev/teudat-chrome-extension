@@ -90,13 +90,20 @@ export class ResultTable {
         const link = department.href;
         const name = department.name;
         const date = department.date;
+        const serviceId = department.serviceId;
 
         let hrefLink = this.createElement('span', null, 'no slots');
         if (date) {
             const closeEnough = this.isCloseEnough(date);
 			if(closeEnough) {
 				console.warn('CLOSE ENOUGH', name, date, Date.now());
-				this.backendService.notify('closeDate', {department: name, date});
+				this.backendService.notify('closeDate', {
+                    department: {
+                        name,
+                        serviceId,
+                    },
+                    date
+                });
 			}
 
             const formattedDate = (new Date(date)).toLocaleDateString('ru-RU', {

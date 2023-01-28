@@ -178,7 +178,7 @@ export class FinderSlots
 				console.warn('BAD RESPONSE', response);
 			}).catch((error) => {
 				this.preventContinue = true;
-				this.backendService.notify('reloadPage');
+				this.backendService.notify('blockedPage');
 				resolve({department: department, data: {Success: false, Message: error.message}});
 
 				console.log('BAD RESPONSE', error);
@@ -214,6 +214,7 @@ export class FinderSlots
 				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
 				name: department.Label,
 				date: data[0].calendarDate.substring(0, 10),
+				serviceId: department.ServiceId,
 			})
 
 			highlightData.color = "darkseagreen";

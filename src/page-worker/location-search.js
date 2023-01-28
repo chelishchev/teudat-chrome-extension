@@ -174,6 +174,7 @@ export class LocationSearch {
 				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
 				name: label,
 				date: date,
+				serviceId: department.ServiceId,
 			});
 		}
 	}
