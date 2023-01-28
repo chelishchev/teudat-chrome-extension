@@ -9,7 +9,16 @@ export class BackendService {
             return this.userData;
         }
 
-        return this.get('getMySelf').then(response => response.json()).then(data => {
+        return this.get('getMySelf').then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+
+            return {
+                user: null,
+                status: response.status,
+            };
+        }).then(data => {
             this.userData = data?.user;
 
             return this.userData;

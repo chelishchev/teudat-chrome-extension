@@ -2,30 +2,35 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <style>
-        * {
-            font-family: Arial, sans-serif;
-            font-size: 16px;
-        }
-    </style>
+    <link rel="stylesheet" href="/dist/bootstrap.min.css">
 </head>
 <body>
-<div>
-    <p>
-        Привет! Чтобы удобно пользоваться MyVisit и этим расширением, вам нужно ввести специальный код:
-        <br>
-        Код можно получить в Telegram боте <a href="https://t.me/ticketFifa18Bot" target="_blank">MyVisit Rega Bot</a>.
-    </p>
-    <div>
-        <form>
-            <label for="token"></label><br>
-            <input type="text" id="token" name="token" maxlength="22" style="width: 215px" placeholder="Введите код">&nbsp;
-            <span id="status"></span><br>
-            <button id="save">Сохранить</button>
+<div class="container col-xl-10 col-xxl-8 px-4 py-5">
+    <div class="row align-items-center g-lg-5 py-5">
+      <div class="col-lg-7 text-center text-lg-start">
+        <h1 class="display-4 fw-bold lh-1 mb-3">Найдём слот в MyVisit</h1>
+        <p class="col-lg-10 fs-4">Привет! Чтобы удобно пользоваться MyVisit и этим расширением, вам нужно ввести специальный код, который можно получить в Telegram боте <a href="https://t.me/ticketFifa18Bot" target="_blank">MyVisit Rega Bot</a></p>
+      </div>
+      <div class="col-md-10 mx-auto col-lg-5">
+        <form class="p-4 p-md-5 border rounded-3 bg-light">
+          <div class="form-floating mb-3">
+            <input id="token" name="token" class="form-control" placeholder="Уникальный код">
+            <label for="token">Введите код</label>
+          </div>
+          <span id="status"></span><br>
+          <button class="w-100 btn btn-lg btn-primary" type="button" id="save">Сохранить</button>
+          <hr class="my-4">
+          <small class="text-muted">Код можно получить в Telegram боте <a href="https://t.me/ticketFifa18Bot" target="_blank">MyVisit Rega Bot</a></small>
+          <hr class="my-4">
+            <div class="text-muted" id="userDetail" style="visibility: hidden">
+              <p>Имя: <span id="name"></span></p>
+              <p>ТЗ: <span id="idNumber"></span></p>
+              <p>Телефон: <span id="shortMobilePhone"></span></p>
+            </div>
         </form>
+      </div>
     </div>
-    <div id="userData"></div>
-</div>
+  </div>
 <script src="dist/options.bundle.js"></script>
 </body>
 </html>
