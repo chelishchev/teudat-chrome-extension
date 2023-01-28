@@ -2,7 +2,7 @@ import {Departments} from "./departments";
 import {AutoQueue} from "./queue";
 
 const MAX_RESPONSE_RESULT = 2;
-const TIMEOUT = 4*1000;
+const TIMEOUT = 5*1000;
 const TIMEOUT_TO_REPEAT = 3*60*1000;
 export class FinderSlots
 {
