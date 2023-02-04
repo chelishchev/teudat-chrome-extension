@@ -1,7 +1,7 @@
 chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
 	if (request.action === 'sync-config')
 	{
-        const config = await chrome.storage.local.get(['config']);
+        const config = await chrome.storage.local.get('config');
         const status = await chrome.storage.sync.get('isDisabled');
         const token = await chrome.storage.sync.get('personalToken');
 
