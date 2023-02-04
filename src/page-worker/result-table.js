@@ -1,5 +1,5 @@
 
-const COUNT_OF_DAYS = 200;
+const COUNT_OF_DAYS = 16;
 const SEEMS_CLOSE_DATE = COUNT_OF_DAYS*24*60*60*1000;
 
 export class ResultTable {
