@@ -45,7 +45,7 @@ export class ResultTable {
     }
 
     changeDepartment(departmentName) {
-        this.statusValue.innerText = 'Working...' + ' ' + departmentName;
+        this.statusValue.innerText = 'Ищем...' + ' ' + departmentName;
         // this.departmentValue.innerText = departmentName;
     }
 
