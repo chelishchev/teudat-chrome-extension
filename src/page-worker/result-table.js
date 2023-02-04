@@ -1,5 +1,6 @@
 
-const SEEMS_CLOSE_DATE = 14*24*60*60*1000;
+const COUNT_OF_DAYS = 200;
+const SEEMS_CLOSE_DATE = COUNT_OF_DAYS*24*60*60*1000;
 
 export class ResultTable {
     constructor({gifPath, backendService}) {
@@ -17,8 +18,8 @@ export class ResultTable {
         this.loadingImage = this.createLoadingImage();
 
         const statusRow = this.createRow([
-            this.createElement('span', null, 'Status:&nbsp;'),
-            this.statusValue = this.createElement('span', null, 'Working...'),
+            this.createElement('span', null, 'Статус:&nbsp;'),
+            this.statusValue = this.createElement('span', null, 'Ищем...'),
             this.loadingImage,
         ]);
 
@@ -28,7 +29,7 @@ export class ResultTable {
         // ]);
 
         const lastCheckDatetime = this.createRow([
-            this.createElement('span', null, 'Last check:&nbsp;'),
+            this.createElement('span', null, 'Последняя проверка:&nbsp;'),
             this.lastCheckDatetime = this.createElement('span', null, '...'),
         ]);
 
@@ -62,19 +63,19 @@ export class ResultTable {
     }
 
     changeStatusAsWorking() {
-        this.statusValue.innerText = 'Working...';
+        this.statusValue.innerText = 'Ищем...';
     }
 
     changeStatusAsFinished() {
-        this.statusValue.innerText = 'Finished';
+        this.statusValue.innerText = 'Закончили';
     }
 
     changeStatusAsContinue() {
-        this.statusValue.innerText = 'Will refresh in few minutes...';
+        this.statusValue.innerText = 'Продолжил поиск через несколько минут...';
     }
 
     changeStatusAsError() {
-        this.statusValue.innerText = 'Error. Please refresh the page and try again.';
+        this.statusValue.innerText = 'Ошибка. Пожалуйста, перезагрузите страницу и попробуйте снова.';
         this.loadingImage.style.display = 'none';
     }
 
