@@ -3,6 +3,22 @@ import {BackendService} from "../page-worker/backend-service";
 const tokenInput = document.querySelector('#token');
 const saveButton = document.querySelector('#save');
 const status = document.querySelector('#status');
+const switchOff = document.querySelector('#switchOff');
+const switchOn = document.querySelector('#switchOn');
+
+switchOff.addEventListener('click', async (event) => {
+    chrome.storage.sync.set({
+        isDisabled: true,
+    });
+    toggleSwitchButtons(true);
+});
+
+switchOn.addEventListener('click', async (event) => {
+    chrome.storage.sync.set({
+        isDisabled: false,
+    });
+    toggleSwitchButtons(false);
+});
 
 saveButton.addEventListener('click', async (event) => {
     const token = tokenInput.value.trim();
@@ -29,6 +45,9 @@ saveButton.addEventListener('click', async (event) => {
 (async () => {
     tokenInput.value = await loadConfig();
     showUserData(tokenInput.value);
+
+    const isDisabled = await chrome.storage.sync.get('isDisabled');
+    toggleSwitchButtons(isDisabled.isDisabled);
 })();
 
 async function showUserData(token) {
@@ -45,6 +64,17 @@ async function showUserData(token) {
     }
 
     return userData !== null;
+}
+
+function toggleSwitchButtons(isDisabled) {
+    if (isDisabled) {
+        switchOff.style.visibility = 'hidden';
+        switchOn.style.visibility = 'visible';
+    }
+    else {
+        switchOff.style.visibility = 'visible';
+        switchOn.style.visibility = 'hidden';
+    }
 }
 
 async function loadConfig() {
