@@ -71,7 +71,7 @@ export class ResultTable {
     }
 
     changeStatusAsContinue() {
-        this.statusValue.innerText = 'Продолжил поиск через несколько минут...';
+        this.statusValue.innerText = 'Продолжим поиск через несколько минут...';
     }
 
     changeStatusAsError() {
