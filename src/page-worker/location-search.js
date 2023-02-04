@@ -25,7 +25,7 @@ export class LocationSearch {
 
 	loadRequestConfig()
 	{
-		const syncConfig = document.body.dataset.syncConfig;
+		const syncConfig = document.documentElement.dataset.syncConfig;
 		if (syncConfig === undefined) {
 			this.tokenConfig = {};
 		} else {

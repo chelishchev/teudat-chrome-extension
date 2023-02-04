@@ -12,24 +12,47 @@ xhrSubstitute.substitute();
 
 (new MouseEventSimulator()).randomize();
 
-const token = 'wSoSKdefRxkqCIUpXRKzNS';
-const backendService = new BackendService(token);
+(async () => {
+	const token = getSyncValue('syncToken');
+	const status = getSyncValue('syncIsDisabled');
+	if (status) {
+		console.warn('Disabled by user');
 
-const gifPath = document.documentElement.dataset.gifPath;
-const resultTable = new ResultTable({
-	gifPath,
-	backendService,
-});
-const departments = new Departments();
-const locationSearch = new LocationSearch(
-	{departments, resultTable, xhrSubstitute, backendService}
-);
+		return;
+	}
+	if (!token) {
+		console.warn('Token not found!');
 
-locationSearch.fallbackWhenDateNotInLabel(() => {
-	const finderSlots = new FinderSlots({departments, resultTable, backendService});
-	finderSlots.start();
-});
+		return;
+	}
+	const backendService = new BackendService(token);
 
-delete document.documentElement.dataset.gifPath;
+	const gifPath = document.documentElement.dataset.gifPath;
+	const resultTable = new ResultTable({
+		gifPath,
+		backendService,
+	});
 
-(new FormFiller({backendService})).fillByMySelf();
+	const departments = new Departments();
+	const locationSearch = new LocationSearch(
+		{departments, resultTable, xhrSubstitute, backendService}
+	);
+
+	locationSearch.fallbackWhenDateNotInLabel(() => {
+		const finderSlots = new FinderSlots({departments, resultTable, backendService});
+		finderSlots.start();
+	});
+	(new FormFiller({backendService})).fillByMySelf();
+
+
+	delete document.documentElement.dataset.gifPath;
+})();
+
+function getSyncValue(key) {
+	if (!(key in document.documentElement.dataset)) {
+		return null;
+	}
+	const value = document.documentElement.dataset[key];
+
+	return JSON.parse(value);
+}
