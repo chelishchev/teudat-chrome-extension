@@ -164,15 +164,16 @@ export class FinderSlots
 				"mode": "cors",
 				"credentials": "include"
 			}).then(response => {
+				const status = response.status;
 				if(response.ok) {
 					return response.json().then(data => {
-						const status = response.status;
 						resolve({department, data});
 						console.log('RESPONSE', {department, data}, status);
 					});
 				}
-
-				this.backendService.notify('reloadPage');
+				if(status !== 403) {
+					this.backendService.notify('reloadPage');
+				}
 				resolve({department: department, data: {Success: false, Message: 'BAD RESPONSE'}});
 
 				console.warn('BAD RESPONSE', response);
