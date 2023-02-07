@@ -2,8 +2,8 @@
     const status = await chrome.storage.sync.get('isDisabled');
     const token = await chrome.storage.sync.get('personalToken');
 
-    document.documentElement.dataset.syncIsDisabled = JSON.stringify(status.isDisabled);
-    document.documentElement.dataset.syncToken = JSON.stringify(token.personalToken);
+    document.documentElement.dataset.syncIsDisabled = JSON.stringify(('isDisabled' in status) ? status.isDisabled : false);
+    document.documentElement.dataset.syncToken = JSON.stringify(('personalToken' in token) ? token.personalToken : false.personalToken);
 
     const s = document.createElement('script')
     s.src = chrome.runtime.getURL('dist/page-worker.bundle.js')
