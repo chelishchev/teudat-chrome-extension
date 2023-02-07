@@ -6,7 +6,7 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
         const token = await chrome.storage.sync.get('personalToken');
 
         document.documentElement.dataset.syncConfig = JSON.stringify(config.config);
-        document.documentElement.dataset.syncIsDisabled = status.isDisabled;
+        document.documentElement.dataset.syncIsDisabled = JSON.stringify(status.isDisabled);
         document.documentElement.dataset.syncToken = token.personalToken;
 	}
 
