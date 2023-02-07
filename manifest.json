@@ -1,6 +1,6 @@
 {
-  "name": "Teudat",
-  "description": "Get your teudat!",
+  "name": "MyVisit Rega Helper",
+  "description": "We help you to get your teudat!",
   "version": "1.0",
   "manifest_version": 3,
   "background": {
