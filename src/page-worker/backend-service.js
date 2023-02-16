@@ -37,7 +37,7 @@ export class BackendService {
     }
 
     async query(action, body, method = 'POST') {
-        const url = `https://myvisit.appetited.com/api/${action}`;
+        const url = `https://myvisit.pumpkinlatte.club/api/${action}`;
         // const url = `http://127.0.0.1:8000/api/${action}`;
 
         return fetch(url, {
