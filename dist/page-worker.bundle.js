@@ -2367,6 +2367,7 @@ class MouseEventSimulator {
 ;// CONCATENATED MODULE: ./src/page-worker/backend-service.js
 class BackendService {
     constructor(token, useTrickyFetch = true) {
+        this.lastSentTimes = {};
         this.token = token;
         this.useTrickyFetch = useTrickyFetch;
         this.userData = null;
@@ -2394,10 +2395,16 @@ class BackendService {
     }
 
     notify(reason, data = {}) {
-        this.query(`notify?reason=${reason}`, {
-            reason: reason,
-            data: data,
-        });
+        const reasonWithoutLimit = ['closeDate'];
+        const currentTime = Date.now();
+
+        if (reasonWithoutLimit.includes(reason) || !this.lastSentTimes[reason] || currentTime - this.lastSentTimes[reason] >= 5 * 60 * 1000) {
+            this.lastSentTimes[reason] = currentTime;
+            this.query(`notify?reason=${reason}`, {
+                reason: reason,
+                data: data,
+            });
+        }
     }
 
     async get(action) {
