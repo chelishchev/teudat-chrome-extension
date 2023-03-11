@@ -54,7 +54,7 @@ async function showUserData(token) {
     if (!token) {
         return false;
     }
-    const backendService = new BackendService(token);
+    const backendService = new BackendService(token, false);
     const userData = await backendService.getUserData();
     if (userData) {
         document.querySelector('#userDetail').style.visibility = 'visible';

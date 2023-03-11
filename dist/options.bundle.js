@@ -4,8 +4,9 @@ var __webpack_exports__ = {};
 
 ;// CONCATENATED MODULE: ./src/page-worker/backend-service.js
 class BackendService {
-    constructor(token) {
+    constructor(token, useTrickyFetch = true) {
         this.token = token;
+        this.useTrickyFetch = useTrickyFetch;
         this.userData = null;
     }
 
@@ -15,8 +16,8 @@ class BackendService {
         }
 
         return this.get('getMySelf').then(response => {
-            if (response.ok) {
-                return response.json();
+            if (response.status >= 200 && response.status < 300) {
+                return response.response;
             }
 
             return {
@@ -30,8 +31,8 @@ class BackendService {
         });
     }
 
-    async notify(reason, data = {}) {
-        return this.query(`notify?reason=${reason}`, {
+    notify(reason, data = {}) {
+        this.query(`notify?reason=${reason}`, {
             reason: reason,
             data: data,
         });
@@ -44,14 +45,50 @@ class BackendService {
     async query(action, body, method = 'POST') {
         const url = `https://myvisit.pumpkinlatte.club/api/${action}`;
         // const url = `http://127.0.0.1:8000/api/${action}`;
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.token}`,
+        };
 
-        return fetch(url, {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.token}`,
-            },
-            body: method !== 'GET' ? JSON.stringify(body) : null,
+        if (!this.useTrickyFetch) {
+            return fetch(url, {
+                method: method,
+                headers: headers,
+                body: method !== 'GET' ? JSON.stringify(body) : null,
+            }).then(async response => {
+                if (response.ok) {
+                    const jsonResponse = await response.json()
+                    return {
+                        status: response.status,
+                        response: jsonResponse,
+                    }
+                } else {
+                    return {
+                        status: response.status,
+                        response: null,
+                    }
+                }
+            });
+        }
+
+        return new Promise((resolve, reject) => {
+            const reqId = Math.random().toString(36).substring(2, 15)
+
+            window.postMessage({
+                reqId: reqId,
+                type: 'FETCH',
+                method: method,
+                headers: headers,
+                body: method !== 'GET' ? JSON.stringify(body) : null,
+                url: url,
+            }, window.location.origin)
+
+            window.addEventListener('message', function (event) {
+                console.log('RESPONSE', event.data);
+                if (event.data.reqId === reqId && event.data.type === 'FETCH_RESPONSE') {
+                    resolve(event.data.response);
+                }
+            });
         });
     }
 }
@@ -112,7 +149,7 @@ async function showUserData(token) {
     if (!token) {
         return false;
     }
-    const backendService = new BackendService(token);
+    const backendService = new BackendService(token, false);
     const userData = await backendService.getUserData();
     if (userData) {
         document.querySelector('#userDetail').style.visibility = 'visible';
