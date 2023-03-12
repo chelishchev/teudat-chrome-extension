@@ -2,10 +2,10 @@ class RequestTokenExtractor
 {
 	constructor()
 	{
-		this.registerListener();
+		this.registerListeners();
 	}
 
-	registerListener()
+	registerListeners()
 	{
 		chrome.webRequest.onSendHeaders.addListener(
 			this.handleSendHeaders.bind(this),
@@ -23,6 +23,10 @@ class RequestTokenExtractor
 				types: ['main_frame'],
 			}
 		);
+
+		chrome.action.onClicked.addListener((tab) => {
+			chrome.runtime.openOptionsPage(() => {});
+		});
 
 		chrome.runtime.onInstalled.addListener(details => {
 			if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
