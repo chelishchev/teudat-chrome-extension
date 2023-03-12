@@ -91,6 +91,13 @@ class Departments
 			2215,
 			2159,
 			2219,
+			2235, //Zfat
+			2211, //Akko
+			2247, //Eilat
+			2217, //Ashkelon
+			2196, //Beersheva
+			2198, //Dimona
+			2239, //Karmiel
 		];
 	}
 
