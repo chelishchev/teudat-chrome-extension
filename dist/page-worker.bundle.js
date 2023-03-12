@@ -1718,6 +1718,7 @@ const NODE_IDS = {
     ID_KEYPAD: 'ID_KEYPAD',
     PHONE_KEYPAD: 'PHONE_KEYPAD',
     mobileNumber: 'mobileNumber',
+    smsCode: 'verficationNumber',
 }
 class FormFiller {
 
@@ -1772,6 +1773,7 @@ class FormFiller {
         this.fillIDTeudat(person.idNumber);
         this.fillPhoneShort(person.shortMobilePhone);
         this.fillMobileNumber(person.phoneNumber);
+        this.processVerificationNumber();
 
         this.registerAutoFiller(person);
     }
@@ -1781,6 +1783,7 @@ class FormFiller {
             this.fillIDTeudat(person.idNumber);
             this.fillPhoneShort(person.shortMobilePhone);
             this.fillMobileNumber(person.phoneNumber);
+            this.processVerificationNumber();
         }, 250);
 
         const observer = new MutationObserver(mutations => {
@@ -1850,7 +1853,7 @@ class FormFiller {
         const mobileNumber = document.querySelector(`#${NODE_IDS.mobileNumber}`);
         const work = (node) => {
             this.setValueAndDispatchEvent(node, phoneNumber);
-            this.submitFormAfterDelay('form[name="smsSettingsForm"] input[type="submit"]', 200);
+            // this.submitFormAfterDelay('form[name="smsSettingsForm"] input[type="submit"]', 200);
             this.focusElementAfterDelay('#verficationNumber', 400);
         }
 
@@ -1859,6 +1862,22 @@ class FormFiller {
                 work(mobileNumber);
             } else {
                 this.doWhenElementVisible(mobileNumber, () => work(mobileNumber));
+            }
+        }
+    }
+
+    processVerificationNumber() {
+        const smsCode = document.querySelector(`#${NODE_IDS.smsCode}`);
+        const work = (node) => {
+            this.notifyShouldEnterSmsCode();
+            this.focusElementAfterDelay(`#${NODE_IDS.smsCode}`, 400);
+        }
+
+        if (smsCode) {
+            if (this.isVisible(smsCode)) {
+                work(smsCode);
+            } else {
+                this.doWhenElementVisible(smsCode, () => work(smsCode));
             }
         }
     }
@@ -1885,8 +1904,6 @@ class FormFiller {
             const element = document.querySelector(selector);
             if (element) {
                 element.focus();
-
-                this.notifyShouldEnterSmsCode();
             }
         }, delay);
     }
