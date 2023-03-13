@@ -1,6 +1,6 @@
 {
   "name": "MyVisit Rega Helper",
-  "description": "We help you to get your teudat!",
+  "description": "Поможем вам получить Даркон, Маавар или Теудат Зеут, облегчив работу с MyVisit",
   "version": "1.0",
   "manifest_version": 3,
   "background": {
