@@ -3,21 +3,14 @@ import {BackendService} from "../page-worker/backend-service";
 const tokenInput = document.querySelector('#token');
 const saveButton = document.querySelector('#save');
 const status = document.querySelector('#status');
-const switchOff = document.querySelector('#switchOff');
-const switchOn = document.querySelector('#switchOn');
+const switcher = document.querySelector('#switcher');
 
-switchOff.addEventListener('click', async (event) => {
+switcher.addEventListener('click', async (event) => {
+    const desiredStatus = switcher.dataset.isDisabled === '1' ;
     chrome.storage.sync.set({
-        isDisabled: true,
+        isDisabled: desiredStatus,
     });
-    toggleSwitchButtons(true);
-});
-
-switchOn.addEventListener('click', async (event) => {
-    chrome.storage.sync.set({
-        isDisabled: false,
-    });
-    toggleSwitchButtons(false);
+    toggleSwitchButtons(desiredStatus);
 });
 
 saveButton.addEventListener('click', async (event) => {
@@ -25,7 +18,7 @@ saveButton.addEventListener('click', async (event) => {
     const result = await showUserData(token);
     let statusText = 'Ok';
     if (!result) {
-        statusText = 'Неверный токен';
+        statusText = 'Неверный уникальный код';
     } else {
         chrome.storage.sync.set({
             personalToken: token,
@@ -68,12 +61,11 @@ async function showUserData(token) {
 
 function toggleSwitchButtons(isDisabled) {
     if (isDisabled) {
-        switchOff.style.visibility = 'hidden';
-        switchOn.style.visibility = 'visible';
-    }
-    else {
-        switchOff.style.visibility = 'visible';
-        switchOn.style.visibility = 'hidden';
+        switcher.dataset.isDisabled = '0';
+        switcher.textContent = 'Включить';
+    } else {
+        switcher.dataset.isDisabled = '1';
+        switcher.textContent = 'Отключить';
     }
 }
 

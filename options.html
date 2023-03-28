@@ -9,7 +9,8 @@
     <div class="row align-items-center g-lg-5 py-5">
       <div class="col-lg-7 text-center text-lg-start">
         <h1 class="display-4 fw-bold lh-1 mb-3">Найдём слот в MyVisit</h1>
-        <p class="col-lg-10 fs-4">Привет! Чтобы удобно пользоваться MyVisit и этим расширением, вам нужно ввести специальный код, который можно получить в Telegram боте <a href="https://t.me/myvisit_rega_bot" target="_blank">MyVisit Rega Bot</a></p>
+        <p class="col-lg-10 fs-4">Привет! Расширение MyVisit Rega Helper позволит вам автоматически проверять отделения МВД на наличие свободных слотов, а так же быстрее вводить данные, необходимые для авторизации на сайте <a href="https://myvisit.com" target="_blank">myVisit</a>.</p>
+        <p class="col-lg-10 fs-4">Чтобы расширение начало работу, введите ваш уникальный код. Код можно получить в телеграм-боте <a href="https://t.me/myvisit_rega_bot" target="_blank">MyVisit Rega Bot</a>.</p>
       </div>
       <div class="col-md-10 mx-auto col-lg-5">
         <form class="p-4 p-md-5 border rounded-3 bg-light">
@@ -17,19 +18,25 @@
             <input id="token" name="token" class="form-control" placeholder="Уникальный код">
             <label for="token">Введите код</label>
           </div>
-          <span id="status"></span><br>
+          <span id="status"></span>
           <button class="w-100 btn btn-lg btn-primary" type="button" id="save">Сохранить</button>
           <hr class="my-4">
           <small class="text-muted">Код можно получить в Telegram боте <a href="https://t.me/myvisit_rega_bot" target="_blank">MyVisit Rega Bot</a></small>
           <hr class="my-4">
-            <div class="text-muted" id="userDetail" style="visibility: hidden">
-              <p>Имя: <span id="name"></span></p>
-              <p>ТЗ: <span id="idNumber"></span></p>
-              <p>Телефон: <span id="shortMobilePhone"></span></p>
-
-              <button id="switchOff" style="visibility: hidden" type="button" class="btn btn-lg btn-outline-secondary">Отключить автозаполнение и поиск слотов</button>
-              <button id="switchOn" style="visibility: hidden" type="button" class="btn btn-lg btn-outline-secondary">Включить автозаполнение и поиск слотов</button>
-            </div>
+          <div class="text-muted" id="userDetail" style="visibility: hidden">
+            <p>Данные для записи:</p>
+            <div>Имя: <span id="name"></span></div>
+            <div>ТЗ: <span id="idNumber"></span></div>
+            <div>Телефон: <span id="shortMobilePhone"></span></div>
+            <p></p>
+            <hr class="my-4">
+            <div>Перейдите на сайт <a href="https://myvisit.com" target="_blank">myVisit</a> и следуйте дальнейшей инструкции.</div>
+            <p></p>
+            <hr class="my-4">
+            <div>Вы можете вручную включать и отключать поиск слотов и автозаполнение:</div>
+            <p></p>
+            <button id="switcher" type="button" class="w-100 btn btn-lg btn-outline-secondary">Отключить</button>
+          </div>
         </form>
       </div>
     </div>
