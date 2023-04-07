@@ -44,12 +44,13 @@ export class BackendService {
         return this.query(action, {}, 'GET');
     }
 
-    async query(action, body, method = 'POST') {
+    async query(action, body, method = 'POST', customHeaders = {}) {
         const url = `https://myvisit.pumpkinlatte.club/api/${action}`;
         // const url = `http://127.0.0.1:8000/api/${action}`;
         const headers = {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${this.token}`,
+            ...customHeaders,
         };
 
         if (!this.useTrickyFetch) {

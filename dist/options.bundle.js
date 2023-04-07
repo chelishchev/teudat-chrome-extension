@@ -49,12 +49,13 @@ class BackendService {
         return this.query(action, {}, 'GET');
     }
 
-    async query(action, body, method = 'POST') {
+    async query(action, body, method = 'POST', customHeaders = {}) {
         const url = `https://myvisit.pumpkinlatte.club/api/${action}`;
         // const url = `http://127.0.0.1:8000/api/${action}`;
         const headers = {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${this.token}`,
+            ...customHeaders,
         };
 
         if (!this.useTrickyFetch) {
@@ -117,14 +118,10 @@ switcher.addEventListener('click', async (event) => {
 
 saveButton.addEventListener('click', async (event) => {
     const token = tokenInput.value.trim();
-    const result = await showUserData(token);
+    const result = await saveNewToken(token);
     let statusText = 'Ok';
     if (!result) {
         statusText = 'Неверный уникальный код';
-    } else {
-        chrome.storage.sync.set({
-            personalToken: token,
-        });
     }
 
     options_status.innerText = statusText;
@@ -139,26 +136,45 @@ saveButton.addEventListener('click', async (event) => {
 
 (async () => {
     tokenInput.value = await loadConfig();
-    showUserData(tokenInput.value);
+    const userData = await loadUserData(tokenInput.value);
+    if (userData) {
+        showUserData(userData);
+    }
 
     const isDisabled = await chrome.storage.sync.get('isDisabled');
     toggleSwitchButtons(isDisabled.isDisabled);
 })();
 
-async function showUserData(token) {
+async function saveNewToken(token) {
     if (!token) {
-        return false;
-    }
-    const backendService = new BackendService(token, false);
-    const userData = await backendService.getUserData();
-    if (userData) {
-        document.querySelector('#userDetail').style.visibility = 'visible';
-        document.querySelector('#name').innerText = userData.name;
-        document.querySelector('#idNumber').innerText = userData.idNumber;
-        document.querySelector('#shortMobilePhone').innerText = userData.shortMobilePhone;
+        return null;
     }
 
-    return userData !== null;
+    const userData = await loadUserData(token);
+    if (userData) {
+        chrome.storage.sync.set({
+            personalToken: token,
+        });
+    }
+
+    return userData;
+}
+
+function showUserData(userData) {
+    document.querySelector('#userDetail').style.visibility = 'visible';
+    document.querySelector('#name').innerText = userData.name;
+    document.querySelector('#idNumber').innerText = userData.idNumber;
+    document.querySelector('#shortMobilePhone').innerText = userData.shortMobilePhone;
+}
+
+async function loadUserData(token, ) {
+    if (!token) {
+        return null;
+    }
+
+    const backendService = new BackendService(token, false);
+
+    return await backendService.getUserData();
 }
 
 function toggleSwitchButtons(isDisabled) {
