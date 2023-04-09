@@ -222,6 +222,6 @@ export class FinderSlots
 			highlightData.text = data[0].calendarDate.substring(0, 10);
 		}
 
-		this.departments.highlightAddress(department, highlightData);
+		// this.departments.highlightAddress(department, highlightData);
 	}
 }
