@@ -1,7 +1,7 @@
 {
   "name": "MyVisit Rega Helper",
   "description": "Поможем вам получить Даркон, Маавар или Теудат Зеут, облегчив работу с MyVisit",
-  "version": "1.2",
+  "version": "1.2.1",
   "manifest_version": 3,
   "background": {
     "service_worker": "background.js"
