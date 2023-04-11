@@ -16,14 +16,20 @@ switcher.addEventListener('click', async (event) => {
 saveButton.addEventListener('click', async (event) => {
     const token = tokenInput.value.trim();
     const result = await saveNewToken(token);
-    let statusText = 'Ok';
+    let statusText = 'Код сохранен 👌';
     if (!result) {
-        statusText = 'Неверный уникальный код';
+        statusText = 'Неверный уникальный код :(';
+    } else {
+        showUserData(result)
     }
 
-    status.innerText = statusText;
+    const currentText = saveButton.textContent;
+    saveButton.textContent = statusText;
+    saveButton.style.pointerEvents = 'none';
+
     setTimeout(() => {
-        status.innerText = '';
+        saveButton.textContent = currentText;
+        saveButton.style.pointerEvents = 'auto';
     }, 2000);
 
 
