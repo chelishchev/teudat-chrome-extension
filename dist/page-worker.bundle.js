@@ -46,8 +46,6 @@ class Departments
 
 	getNodeOnPage(department)
 	{
-		this.#normalize(department);
-
 		const escapedAddress = department.LocationName.replace(/"/g, '\\"');
 		if (!this.cache.has(escapedAddress))
 		{
@@ -55,6 +53,23 @@ class Departments
 		}
 
 		return this.cache.get(escapedAddress);
+	}
+
+	clickOnDepartment(departmentId)
+	{
+		const departmentInfo = this.getDepartmentById(departmentId);
+		if (!departmentInfo)
+		{
+			console.log('Department not found', departmentId);
+			return;
+		}
+
+		let parent = this.getNodeOnPage(departmentInfo);
+		while (parent && !parent.getAttribute('data-ng-click'))
+		{
+			parent = parent.parentNode;
+		}
+		parent.click();
 	}
 
 	highlightAddress(department, data)
@@ -1715,6 +1730,21 @@ class Departments
 		];
 	}
 
+	getDepartmentById(id)
+	{
+		const departments = this.getDepartments();
+		for (let i in departments) {
+			const entry = departments[i];
+			if (entry.ServiceId == id) {
+				this.#normalize(entry);
+
+				return entry;
+			}
+		}
+
+		return null;
+	}
+
 	getDepartments()
 	{
 		return this.departments;
@@ -1726,6 +1756,9 @@ const NODE_IDS = {
     PHONE_KEYPAD: 'PHONE_KEYPAD',
     mobileNumber: 'mobileNumber',
     smsCode: 'verficationNumber',
+
+    serviceForCommonCases: '\\31 56',
+    serviceForGettingSecondDarkon: '\\32 67',
 }
 class FormFiller {
 
@@ -1777,27 +1810,35 @@ class FormFiller {
     }
 
     fill(person) {
-        this.fillIDTeudat(person.idNumber);
-        this.fillPhoneShort(person.shortMobilePhone);
-        this.fillMobileNumber(person.phoneNumber);
-        this.processVerificationNumber();
+        this.#processFill(person);
 
         this.registerAutoFiller(person);
     }
 
+    #processFill(person) {
+        this.fillIDTeudat(person.idNumber);
+        this.fillPhoneShort(person.shortMobilePhone);
+        this.fillMobileNumber(person.phoneNumber);
+        this.processVerificationNumber();
+        this.selectServiceInProvider();
+    }
+
     registerAutoFiller(person) {
         const processFill = this.debounce(() => {
-            this.fillIDTeudat(person.idNumber);
-            this.fillPhoneShort(person.shortMobilePhone);
-            this.fillMobileNumber(person.phoneNumber);
-            this.processVerificationNumber();
+            this.#processFill(person);
         }, 250);
 
+        let normalizedNodeIds = {};
+        Object.keys(NODE_IDS).map((name) => {
+            normalizedNodeIds[name] = this.#normalizeSelector(NODE_IDS[name])
+        });
+
+        const expectedNodeIds = Object.values(normalizedNodeIds);
         const observer = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
                 if (mutation.type === 'attributes') {
                     const nodeId = mutation.target.id;
-                    if (NODE_IDS.hasOwnProperty(nodeId)) {
+                    if (expectedNodeIds.includes(nodeId)) {
                         processFill();
                     }
                 }
@@ -1885,6 +1926,33 @@ class FormFiller {
                 work(smsCode);
             } else {
                 this.doWhenElementVisible(smsCode, () => work(smsCode));
+            }
+        }
+    }
+
+    #normalizeSelector(selector) {
+        const parts = selector.split(' ');
+
+        return parts.map(part => {
+            if (part.startsWith('\\')) {
+                return String.fromCodePoint(parseInt(part.slice(1), 16));
+            } else {
+                return part;
+            }
+        }).join('');
+    }
+
+    selectServiceInProvider() {
+        const serviceForCommonCases = document.querySelector(`#${NODE_IDS.serviceForCommonCases}`);
+        const work = (node) => {
+            node.click();
+        }
+
+        if (serviceForCommonCases) {
+            if (this.isVisible(serviceForCommonCases)) {
+                work(serviceForCommonCases);
+            } else {
+                this.doWhenElementVisible(serviceForCommonCases, () => work(serviceForCommonCases));
             }
         }
     }
@@ -2761,7 +2829,7 @@ class FinderSlots
 		if (!data || !data.length)
 		{
 			this.resultTable.appendResult({
-				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
+				href: `https://myvisit.com/#!/home/provider/56?d=${department.ServiceId}`,
 				name: department.Label,
 			})
 
@@ -2770,7 +2838,7 @@ class FinderSlots
 		else
 		{
 			this.resultTable.appendResult({
-				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
+				href: `https://myvisit.com/#!/home/provider/56?d=${department.ServiceId}`,
 				name: department.Label,
 				date: data[0].calendarDate.substring(0, 10),
 				serviceId: department.ServiceId,
@@ -2783,7 +2851,44 @@ class FinderSlots
 		// this.departments.highlightAddress(department, highlightData);
 	}
 }
+;// CONCATENATED MODULE: ./src/page-worker/auto-select-department.js
+class AutoSelectDepartment {
+    constructor(id, {departments, xhrSubstitute, backendService}) {
+        this.desiredDepartmentId = id;
+        /** @type {Departments} */
+        this.departments = departments;
+        /** @type {XhrSubstitute} */
+        this.xhrSubstitute = xhrSubstitute;
+        /** @type {BackendService} */
+        this.backendService = backendService;
+
+        this.xhrSubstitute.addHandler('https://central.myvisit.com/CentralAPI/AppointmentSet', (url, response) => {
+            this.handleAppointmentSetResponse(url, JSON.parse(response));
+        });
+    }
+
+    helpPeopleToSelectDesiredDepartment() {
+        this.departments.clickOnDepartment(this.desiredDepartmentId);
+    }
+
+    handleAppointmentSetResponse(queryUrl, response) {
+        if (!response.Success) {
+            return;
+        }
+        if (response.Results?.ServiceId == this.desiredDepartmentId) {
+            const departmentInfo = this.departments.getDepartmentById(this.desiredDepartmentId);
+            this.backendService.notify('appointmentGot', {
+                department: {
+                    serviceId: departmentInfo.ServiceId,
+                    name: departmentInfo.Label,
+                },
+                date: response.Results.ReferenceDate,
+            })
+        }
+    }
+}
 ;// CONCATENATED MODULE: ./src/page-worker/index.js
+
 
 
 
@@ -2819,17 +2924,26 @@ xhrSubstitute.substitute();
 		backendService,
 	});
 
+	(new FormFiller({backendService})).fillByMySelf();
+
 	const departments = new Departments();
+
 	const locationSearch = new LocationSearch(
 		{departments, resultTable, xhrSubstitute, backendService}
 	);
 
 	locationSearch.fallbackWhenDateNotInLabel(() => {
-		const finderSlots = new FinderSlots({departments, resultTable, backendService});
-		finderSlots.start();
+		const desiredDepartmentId = getSyncValue('desiredDepartmentId');
+		if (desiredDepartmentId) {
+			const autoSelectDepartment = new AutoSelectDepartment(desiredDepartmentId, {departments, xhrSubstitute, backendService});
+			setTimeout(() => {
+				autoSelectDepartment.helpPeopleToSelectDesiredDepartment();
+			}, 1000);
+		} else {
+			const finderSlots = new FinderSlots({departments, resultTable, backendService});
+			finderSlots.start();
+		}
 	});
-	(new FormFiller({backendService})).fillByMySelf();
-
 
 	delete document.documentElement.dataset.gifPath;
 })();
