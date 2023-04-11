@@ -50,6 +50,7 @@ class RequestTokenExtractor
 
 	handleSiteOpened(details) {
 		const tabId = details.tabId;
+		console.log('handleSiteOpened', details.url, details.statusCode, tabId);
 
 		if (details.statusCode !== 200) {
 			return;
@@ -64,7 +65,9 @@ class RequestTokenExtractor
 			chrome.tabs.sendMessage(details.tabId, {
 				action: 'site-opened',
 				url: details.url,
-			}, response => {});
+			}, response => {
+				console.log('site-opened response', response, chrome.runtime.lastError);
+			});
 		});
 
 	}
@@ -75,12 +78,13 @@ class RequestTokenExtractor
 		if (config['application-api-key'])
 		{
 			console.log('requestHeaders: ', config);
-			chrome.storage.local.set({config});
-
 			const message = {
 				action: 'sync-config',
+				config: config,
 			};
-			chrome.tabs.sendMessage(details.tabId, message, response => {});
+			chrome.tabs.sendMessage(details.tabId, message, response => {
+				console.log('sync-config', response, chrome.runtime.lastError);
+			});
 		}
 	}
 

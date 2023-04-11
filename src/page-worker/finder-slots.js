@@ -176,13 +176,13 @@ export class FinderSlots
 				}
 				resolve({department: department, data: {Success: false, Message: 'BAD RESPONSE'}});
 
-				console.warn('BAD RESPONSE', response);
+				console.warn('BAD RESPONSE 1', response);
 			}).catch((error) => {
 				this.preventContinue = true;
 				this.backendService.notify('blockedPage');
 				resolve({department: department, data: {Success: false, Message: error.message}});
 
-				console.log('BAD RESPONSE', error);
+				console.log('BAD RESPONSE 2', error);
 			});
 		});
 	}
