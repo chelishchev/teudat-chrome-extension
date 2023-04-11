@@ -59,8 +59,14 @@ class RequestTokenExtractor
 			target: {tabId: tabId},
 			files: ['injected-by-background.js'],
 		}, () => {
-			console.log('injected-by-background.js injected');
+			console.log('injected-by-background.js injected', details.url);
+
+			chrome.tabs.sendMessage(details.tabId, {
+				action: 'site-opened',
+				url: details.url,
+			}, response => {});
 		});
+
 	}
 
 	handleSendHeaders(details)

@@ -203,7 +203,7 @@ export class FinderSlots
 		if (!data || !data.length)
 		{
 			this.resultTable.appendResult({
-				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
+				href: `https://myvisit.com/#!/home/provider/56?d=${department.ServiceId}`,
 				name: department.Label,
 			})
 
@@ -212,7 +212,7 @@ export class FinderSlots
 		else
 		{
 			this.resultTable.appendResult({
-				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
+				href: `https://myvisit.com/#!/home/provider/56?d=${department.ServiceId}`,
 				name: department.Label,
 				date: data[0].calendarDate.substring(0, 10),
 				serviceId: department.ServiceId,

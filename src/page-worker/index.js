@@ -33,17 +33,25 @@ xhrSubstitute.substitute();
 		backendService,
 	});
 
+	(new FormFiller({backendService})).fillByMySelf();
+
 	const departments = new Departments();
+
 	const locationSearch = new LocationSearch(
 		{departments, resultTable, xhrSubstitute, backendService}
 	);
 
 	locationSearch.fallbackWhenDateNotInLabel(() => {
-		const finderSlots = new FinderSlots({departments, resultTable, backendService});
-		finderSlots.start();
+		const desiredDepartmentId = getSyncValue('desiredDepartmentId');
+		if (desiredDepartmentId) {
+			setTimeout(() => {
+				departments.clickOnDepartment(desiredDepartmentId);
+			}, 1000);
+		} else {
+			const finderSlots = new FinderSlots({departments, resultTable, backendService});
+			finderSlots.start();
+		}
 	});
-	(new FormFiller({backendService})).fillByMySelf();
-
 
 	delete document.documentElement.dataset.gifPath;
 })();

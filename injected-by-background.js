@@ -9,6 +9,17 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
         document.documentElement.dataset.syncIsDisabled = JSON.stringify(status.isDisabled || false);
         document.documentElement.dataset.syncToken = token.personalToken;
 	}
+    if (request.action === 'site-opened')
+    {
+        console.log('site-opened', request.url)
+        const initialUrl = new URL(request.url);
+        const hash = initialUrl.hash;
+        if (hash && hash.includes('?'))
+        {
+            const urlSearchParams = new URLSearchParams(hash.substring(hash.indexOf('?') + 1));
+            document.documentElement.dataset.desiredDepartmentId = urlSearchParams.get('d')
+        }
+    }
 
 	sendResponse(JSON.stringify({success: true}));
 })
