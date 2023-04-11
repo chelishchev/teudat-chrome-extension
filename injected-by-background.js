@@ -1,4 +1,6 @@
 chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
+    sendResponse(JSON.stringify({success: true}));
+
 	if (request.action === 'sync-config')
 	{
         const config = request.config;
@@ -21,8 +23,6 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
             document.documentElement.dataset.desiredDepartmentId = urlSearchParams.get('d')
         }
     }
-
-	sendResponse(JSON.stringify({success: true}));
 
     return true;
 })

@@ -2,6 +2,7 @@ class RequestTokenExtractor
 {
 	constructor()
 	{
+		this.cacheSiteOpened = new Map();
 		this.registerListeners();
 	}
 
@@ -48,6 +49,17 @@ class RequestTokenExtractor
 		});
 	}
 
+	injectScript(tabId, successCallback) {
+		chrome.scripting.executeScript({
+			target: {tabId: tabId},
+			files: ['injected-by-background.js'],
+		}, () => {
+			console.log('Try to inject injected-by-background.js');
+
+			successCallback();
+		});
+	}
+
 	handleSiteOpened(details) {
 		const tabId = details.tabId;
 		console.log('handleSiteOpened', details.url, details.statusCode, tabId);
@@ -56,20 +68,16 @@ class RequestTokenExtractor
 			return;
 		}
 
-		chrome.scripting.executeScript({
-			target: {tabId: tabId},
-			files: ['injected-by-background.js'],
-		}, () => {
-			console.log('injected-by-background.js injected', details.url);
+		this.cacheSiteOpened.set(tabId, details.url);
 
+		this.injectScript(tabId, () => {
 			chrome.tabs.sendMessage(details.tabId, {
 				action: 'site-opened',
 				url: details.url,
 			}, response => {
 				console.log('site-opened response', response, chrome.runtime.lastError);
 			});
-		});
-
+		})
 	}
 
 	handleSendHeaders(details)
@@ -84,6 +92,27 @@ class RequestTokenExtractor
 			};
 			chrome.tabs.sendMessage(details.tabId, message, response => {
 				console.log('sync-config', response, chrome.runtime.lastError);
+				if (!response && chrome.runtime.lastError) {
+					console.log('RETRY to inject injected-by-background.js');
+
+					this.injectScript(details.tabId, () => {
+
+						const openedUrlInTab = this.cacheSiteOpened.get(details.tabId);
+						if (openedUrlInTab) {
+							chrome.tabs.sendMessage(details.tabId, {
+								action: 'site-opened',
+								url: openedUrlInTab,
+							}, response => {
+								console.log('RETRY site-opened', response, chrome.runtime.lastError);
+							});
+						}
+
+						chrome.tabs.sendMessage(details.tabId, message, response => {
+							console.log('RETRY sync-config', response, chrome.runtime.lastError);
+						});
+					});
+
+				}
 			});
 		}
 	}
