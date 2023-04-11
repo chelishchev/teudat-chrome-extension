@@ -6,6 +6,7 @@ import {LocationSearch} from "./location-search";
 import {MouseEventSimulator} from "./mouse-simulator";
 import {BackendService} from "./backend-service";
 import {FinderSlots} from "./finder-slots";
+import AutoSelectDepartment from "./auto-select-department";
 
 const xhrSubstitute = new XhrSubstitute();
 xhrSubstitute.substitute();
@@ -44,8 +45,9 @@ xhrSubstitute.substitute();
 	locationSearch.fallbackWhenDateNotInLabel(() => {
 		const desiredDepartmentId = getSyncValue('desiredDepartmentId');
 		if (desiredDepartmentId) {
+			const autoSelectDepartment = new AutoSelectDepartment(desiredDepartmentId, {departments, xhrSubstitute, backendService});
 			setTimeout(() => {
-				departments.clickOnDepartment(desiredDepartmentId);
+				autoSelectDepartment.helpPeopleToSelectDesiredDepartment();
 			}, 1000);
 		} else {
 			const finderSlots = new FinderSlots({departments, resultTable, backendService});

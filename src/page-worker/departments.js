@@ -41,8 +41,6 @@ export class Departments
 
 	getNodeOnPage(department)
 	{
-		this.#normalize(department);
-
 		const escapedAddress = department.LocationName.replace(/"/g, '\\"');
 		if (!this.cache.has(escapedAddress))
 		{
@@ -1732,8 +1730,9 @@ export class Departments
 		const departments = this.getDepartments();
 		for (let i in departments) {
 			const entry = departments[i];
-			console.log('getDepartmentById', entry, id)
 			if (entry.ServiceId == id) {
+				this.#normalize(entry);
+
 				return entry;
 			}
 		}
