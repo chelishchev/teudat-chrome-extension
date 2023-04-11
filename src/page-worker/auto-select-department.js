@@ -9,7 +9,6 @@ export default class AutoSelectDepartment {
         this.backendService = backendService;
 
         this.xhrSubstitute.addHandler('https://central.myvisit.com/CentralAPI/AppointmentSet', (url, response) => {
-            console.log('AppointmentSet', url, response);
             this.handleAppointmentSetResponse(url, JSON.parse(response));
         });
     }
@@ -19,7 +18,6 @@ export default class AutoSelectDepartment {
     }
 
     handleAppointmentSetResponse(queryUrl, response) {
-        console.log('handleAppointmentSetResponse', queryUrl, response, this.desiredDepartmentId)
         if (!response.Success) {
             return;
         }
@@ -30,7 +28,7 @@ export default class AutoSelectDepartment {
                     serviceId: departmentInfo.ServiceId,
                     name: departmentInfo.Label,
                 },
-                date: response.ReferenceDate,
+                date: response.Results.ReferenceDate,
             })
         }
     }
