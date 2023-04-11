@@ -52,6 +52,23 @@ export class Departments
 		return this.cache.get(escapedAddress);
 	}
 
+	clickOnDepartment(departmentId)
+	{
+		const departmentInfo = this.getDepartmentById(departmentId);
+		if (!departmentInfo)
+		{
+			console.log('Department not found', departmentId);
+			return;
+		}
+
+		let parent = this.getNodeOnPage(departmentInfo);
+		while (parent && !parent.getAttribute('data-ng-click'))
+		{
+			parent = parent.parentNode;
+		}
+		parent.click();
+	}
+
 	highlightAddress(department, data)
 	{
 		const {color, text} = data
@@ -1708,6 +1725,20 @@ export class Departments
 				"MaxWaitingTime": 0
 			}
 		];
+	}
+
+	getDepartmentById(id)
+	{
+		const departments = this.getDepartments();
+		for (let i in departments) {
+			const entry = departments[i];
+			console.log('getDepartmentById', entry, id)
+			if (entry.ServiceId == id) {
+				return entry;
+			}
+		}
+
+		return null;
 	}
 
 	getDepartments()
