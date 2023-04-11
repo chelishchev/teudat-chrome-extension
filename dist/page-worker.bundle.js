@@ -1993,6 +1993,7 @@ class ResultTable {
 		/** @type {BackendService} */
 		this.backendService = backendService;
         this.statusValue = null;
+        this.errorStatusValue = null;
         this.lastCheckDatetime = null;
         this.resultList = null;
         this.gifPath = gifPath;
@@ -2060,8 +2061,16 @@ class ResultTable {
         this.statusValue.innerText = 'Продолжим поиск через несколько минут...';
     }
 
-    changeStatusAsError() {
-        this.statusValue.innerText = 'Ошибка. Пожалуйста, перезагрузите страницу и попробуйте снова.';
+    changeStatusAsError(type) {
+        if (this.errorStatusValue) {
+            return;
+        }
+        if (type === 'blockedPage') {
+            this.statusValue.innerText = 'Ошибка. Пожалуйста, перезагрузите страницу через 30-40 минут и попробуйте снова.';
+        } else {
+            this.statusValue.innerText = 'Ошибка. Пожалуйста, перезагрузите страницу и попробуйте снова.';
+        }
+        this.errorStatusValue = type;
         this.loadingImage.style.display = 'none';
     }
 
@@ -2645,7 +2654,7 @@ class FinderSlots
 		this.tokenConfig = {};
 	}
 
-	loadRequestConfig()
+	async loadRequestConfig()
 	{
 		const syncConfig = document.documentElement.dataset.syncConfig;
 		if (syncConfig === undefined) {
@@ -2718,7 +2727,7 @@ class FinderSlots
 				}
 				else
 				{
-					this.resultTable.changeStatusAsError();
+					this.resultTable.changeStatusAsError(data.Type);
 				}
 			});
 			autoQueue.enqueue(this.#sleep);
@@ -2774,7 +2783,7 @@ class FinderSlots
 
 			if (requestHeaders["preparedvisittoken"] === undefined) {
 				console.warn("Can't find preparedvisittoken");
-				resolve({department: department, data: {Success: false, Message: 'Can\'t find preparedvisittoken'}});
+				resolve({department: department, data: {Success: false, Message: 'Can\'t find preparedvisittoken', Type: 'preparedvisittoken'}});
 
 				return;
 			}
@@ -2800,15 +2809,15 @@ class FinderSlots
 				if(status !== 403) {
 					this.backendService.notify('reloadPage');
 				}
-				resolve({department: department, data: {Success: false, Message: 'BAD RESPONSE'}});
+				resolve({department: department, data: {Success: false, Message: 'BAD RESPONSE', Type: 'reloadPage'}});
 
-				console.warn('BAD RESPONSE', response);
+				console.warn('BAD RESPONSE 1', response);
 			}).catch((error) => {
 				this.preventContinue = true;
 				this.backendService.notify('blockedPage');
-				resolve({department: department, data: {Success: false, Message: error.message}});
+				resolve({department: department, data: {Success: false, Message: error.message, Type: 'blockedPage'}});
 
-				console.log('BAD RESPONSE', error);
+				console.log('BAD RESPONSE 2', error);
 			});
 		});
 	}

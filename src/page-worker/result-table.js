@@ -7,6 +7,7 @@ export class ResultTable {
 		/** @type {BackendService} */
 		this.backendService = backendService;
         this.statusValue = null;
+        this.errorStatusValue = null;
         this.lastCheckDatetime = null;
         this.resultList = null;
         this.gifPath = gifPath;
@@ -74,8 +75,16 @@ export class ResultTable {
         this.statusValue.innerText = 'Продолжим поиск через несколько минут...';
     }
 
-    changeStatusAsError() {
-        this.statusValue.innerText = 'Ошибка. Пожалуйста, перезагрузите страницу и попробуйте снова.';
+    changeStatusAsError(type) {
+        if (this.errorStatusValue) {
+            return;
+        }
+        if (type === 'blockedPage') {
+            this.statusValue.innerText = 'Ошибка. Пожалуйста, перезагрузите страницу через 30-40 минут и попробуйте снова.';
+        } else {
+            this.statusValue.innerText = 'Ошибка. Пожалуйста, перезагрузите страницу и попробуйте снова.';
+        }
+        this.errorStatusValue = type;
         this.loadingImage.style.display = 'none';
     }
 

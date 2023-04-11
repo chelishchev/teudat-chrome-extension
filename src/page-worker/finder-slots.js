@@ -19,7 +19,7 @@ export class FinderSlots
 		this.tokenConfig = {};
 	}
 
-	loadRequestConfig()
+	async loadRequestConfig()
 	{
 		const syncConfig = document.documentElement.dataset.syncConfig;
 		if (syncConfig === undefined) {
@@ -92,7 +92,7 @@ export class FinderSlots
 				}
 				else
 				{
-					this.resultTable.changeStatusAsError();
+					this.resultTable.changeStatusAsError(data.Type);
 				}
 			});
 			autoQueue.enqueue(this.#sleep);
@@ -148,7 +148,7 @@ export class FinderSlots
 
 			if (requestHeaders["preparedvisittoken"] === undefined) {
 				console.warn("Can't find preparedvisittoken");
-				resolve({department: department, data: {Success: false, Message: 'Can\'t find preparedvisittoken'}});
+				resolve({department: department, data: {Success: false, Message: 'Can\'t find preparedvisittoken', Type: 'preparedvisittoken'}});
 
 				return;
 			}
@@ -174,13 +174,13 @@ export class FinderSlots
 				if(status !== 403) {
 					this.backendService.notify('reloadPage');
 				}
-				resolve({department: department, data: {Success: false, Message: 'BAD RESPONSE'}});
+				resolve({department: department, data: {Success: false, Message: 'BAD RESPONSE', Type: 'reloadPage'}});
 
 				console.warn('BAD RESPONSE 1', response);
 			}).catch((error) => {
 				this.preventContinue = true;
 				this.backendService.notify('blockedPage');
-				resolve({department: department, data: {Success: false, Message: error.message}});
+				resolve({department: department, data: {Success: false, Message: error.message, Type: 'blockedPage'}});
 
 				console.log('BAD RESPONSE 2', error);
 			});
