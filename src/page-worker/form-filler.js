@@ -3,6 +3,9 @@ const NODE_IDS = {
     PHONE_KEYPAD: 'PHONE_KEYPAD',
     mobileNumber: 'mobileNumber',
     smsCode: 'verficationNumber',
+
+    serviceForCommonCases: '\\31 56',
+    serviceForGettingSecondDarkon: '\\32 67',
 }
 export class FormFiller {
 
@@ -54,27 +57,35 @@ export class FormFiller {
     }
 
     fill(person) {
-        this.fillIDTeudat(person.idNumber);
-        this.fillPhoneShort(person.shortMobilePhone);
-        this.fillMobileNumber(person.phoneNumber);
-        this.processVerificationNumber();
+        this.#processFill(person);
 
         this.registerAutoFiller(person);
     }
 
+    #processFill(person) {
+        this.fillIDTeudat(person.idNumber);
+        this.fillPhoneShort(person.shortMobilePhone);
+        this.fillMobileNumber(person.phoneNumber);
+        this.processVerificationNumber();
+        this.selectServiceInProvider();
+    }
+
     registerAutoFiller(person) {
         const processFill = this.debounce(() => {
-            this.fillIDTeudat(person.idNumber);
-            this.fillPhoneShort(person.shortMobilePhone);
-            this.fillMobileNumber(person.phoneNumber);
-            this.processVerificationNumber();
+            this.#processFill(person);
         }, 250);
 
+        let normalizedNodeIds = {};
+        Object.keys(NODE_IDS).map((name) => {
+            normalizedNodeIds[name] = this.#normalizeSelector(NODE_IDS[name])
+        });
+
+        const expectedNodeIds = Object.values(normalizedNodeIds);
         const observer = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
                 if (mutation.type === 'attributes') {
                     const nodeId = mutation.target.id;
-                    if (NODE_IDS.hasOwnProperty(nodeId)) {
+                    if (expectedNodeIds.includes(nodeId)) {
                         processFill();
                     }
                 }
@@ -162,6 +173,33 @@ export class FormFiller {
                 work(smsCode);
             } else {
                 this.doWhenElementVisible(smsCode, () => work(smsCode));
+            }
+        }
+    }
+
+    #normalizeSelector(selector) {
+        const parts = selector.split(' ');
+
+        return parts.map(part => {
+            if (part.startsWith('\\')) {
+                return String.fromCodePoint(parseInt(part.slice(1), 16));
+            } else {
+                return part;
+            }
+        }).join('');
+    }
+
+    selectServiceInProvider() {
+        const serviceForCommonCases = document.querySelector(`#${NODE_IDS.serviceForCommonCases}`);
+        const work = (node) => {
+            node.click();
+        }
+
+        if (serviceForCommonCases) {
+            if (this.isVisible(serviceForCommonCases)) {
+                work(serviceForCommonCases);
+            } else {
+                this.doWhenElementVisible(serviceForCommonCases, () => work(serviceForCommonCases));
             }
         }
     }
