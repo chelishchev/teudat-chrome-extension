@@ -11,7 +11,7 @@ class RequestTokenExtractor
 		chrome.webRequest.onSendHeaders.addListener(
 			this.handleSendHeaders.bind(this),
 			{
-				urls: ['https://central.myvisit.com/*'],
+				urls: ['https://piba-api.myvisit.com/*'],
 				types: ['main_frame', 'sub_frame', 'xmlhttprequest'],
 			},
 			['requestHeaders'],
@@ -20,7 +20,7 @@ class RequestTokenExtractor
 		chrome.webRequest.onCompleted.addListener(
 			this.handleSiteOpened.bind(this),
 			{
-				urls: ['https://myvisit.com/*'],
+				urls: ['https://piba.myvisit.com/*', 'https://myvisit.com/*'],
 				types: ['main_frame'],
 			}
 		);

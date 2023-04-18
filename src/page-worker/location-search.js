@@ -21,6 +21,10 @@ export class LocationSearch {
 			this.handleLocationSearchResponse(JSON.parse(response));
 			this.originalLocationSearchUrl = url;
 		});
+		this.xhrSubstitute.addHandler("https://piba-api.myvisit.com/CentralAPI/LocationSearch", (url, response) => {
+			this.handleLocationSearchResponse(JSON.parse(response));
+			this.originalLocationSearchUrl = url;
+		});
 	}
 
 	loadRequestConfig()
@@ -164,14 +168,14 @@ export class LocationSearch {
 		if (!date)
 		{
 			this.resultTable.appendResult({
-				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
+				href: `https://piba.myvisit.com/#!/home/service/${department.ServiceId}`,
 				name: label,
 			})
 		}
 		else
 		{
 			this.resultTable.appendResult({
-				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
+				href: `https://piba.myvisit.com/#!/home/service/${department.ServiceId}`,
 				name: label,
 				date: date,
 				serviceId: department.ServiceId,

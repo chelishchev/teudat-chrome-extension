@@ -155,9 +155,9 @@ export class FinderSlots
 
 			const currentDateString = this.getCurrentDateString();
 
-			fetch(`https://central.myvisit.com/CentralAPI/SearchAvailableDates?maxResults=${MAX_RESPONSE_RESULT}&serviceId=${department.ServiceId}&startDate=${currentDateString}`, {
+			fetch(`https://piba-api.myvisit.com/CentralAPI/SearchAvailableDates?maxResults=${MAX_RESPONSE_RESULT}&serviceId=${department.ServiceId}&startDate=${currentDateString}`, {
 				"headers": requestHeaders,
-				"referrer": "https://myvisit.com/",
+				"referrer": "https://piba.myvisit.com/",
 				"referrerPolicy": "no-referrer-when-downgrade",
 				"body": null,
 				"method": "GET",
@@ -203,7 +203,7 @@ export class FinderSlots
 		if (!data || !data.length)
 		{
 			this.resultTable.appendResult({
-				href: `https://myvisit.com/#!/home/provider/56?d=${department.ServiceId}`,
+				href: `https://piba.myvisit.com/#!/home/provider/56?d=${department.ServiceId}`,
 				name: department.Label,
 			})
 
@@ -212,7 +212,7 @@ export class FinderSlots
 		else
 		{
 			this.resultTable.appendResult({
-				href: `https://myvisit.com/#!/home/provider/56?d=${department.ServiceId}`,
+				href: `https://piba.myvisit.com/#!/home/provider/56?d=${department.ServiceId}`,
 				name: department.Label,
 				date: data[0].calendarDate.substring(0, 10),
 				serviceId: department.ServiceId,

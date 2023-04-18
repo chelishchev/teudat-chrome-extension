@@ -2239,6 +2239,10 @@ class LocationSearch {
 			this.handleLocationSearchResponse(JSON.parse(response));
 			this.originalLocationSearchUrl = url;
 		});
+		this.xhrSubstitute.addHandler("https://piba-api.myvisit.com/CentralAPI/LocationSearch", (url, response) => {
+			this.handleLocationSearchResponse(JSON.parse(response));
+			this.originalLocationSearchUrl = url;
+		});
 	}
 
 	loadRequestConfig()
@@ -2382,14 +2386,14 @@ class LocationSearch {
 		if (!date)
 		{
 			this.resultTable.appendResult({
-				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
+				href: `https://piba.myvisit.com/#!/home/service/${department.ServiceId}`,
 				name: label,
 			})
 		}
 		else
 		{
 			this.resultTable.appendResult({
-				href: `https://myvisit.com/#!/home/service/${department.ServiceId}`,
+				href: `https://piba.myvisit.com/#!/home/service/${department.ServiceId}`,
 				name: label,
 				date: date,
 				serviceId: department.ServiceId,
@@ -2790,9 +2794,9 @@ class FinderSlots
 
 			const currentDateString = this.getCurrentDateString();
 
-			fetch(`https://central.myvisit.com/CentralAPI/SearchAvailableDates?maxResults=${MAX_RESPONSE_RESULT}&serviceId=${department.ServiceId}&startDate=${currentDateString}`, {
+			fetch(`https://piba-api.myvisit.com/CentralAPI/SearchAvailableDates?maxResults=${MAX_RESPONSE_RESULT}&serviceId=${department.ServiceId}&startDate=${currentDateString}`, {
 				"headers": requestHeaders,
-				"referrer": "https://myvisit.com/",
+				"referrer": "https://piba.myvisit.com/",
 				"referrerPolicy": "no-referrer-when-downgrade",
 				"body": null,
 				"method": "GET",
@@ -2838,7 +2842,7 @@ class FinderSlots
 		if (!data || !data.length)
 		{
 			this.resultTable.appendResult({
-				href: `https://myvisit.com/#!/home/provider/56?d=${department.ServiceId}`,
+				href: `https://piba.myvisit.com/#!/home/provider/56?d=${department.ServiceId}`,
 				name: department.Label,
 			})
 
@@ -2847,7 +2851,7 @@ class FinderSlots
 		else
 		{
 			this.resultTable.appendResult({
-				href: `https://myvisit.com/#!/home/provider/56?d=${department.ServiceId}`,
+				href: `https://piba.myvisit.com/#!/home/provider/56?d=${department.ServiceId}`,
 				name: department.Label,
 				date: data[0].calendarDate.substring(0, 10),
 				serviceId: department.ServiceId,
@@ -2872,6 +2876,9 @@ class AutoSelectDepartment {
         this.backendService = backendService;
 
         this.xhrSubstitute.addHandler('https://central.myvisit.com/CentralAPI/AppointmentSet', (url, response) => {
+            this.handleAppointmentSetResponse(url, JSON.parse(response));
+        });
+        this.xhrSubstitute.addHandler('https://piba-api.myvisit.com/CentralAPI/AppointmentSet', (url, response) => {
             this.handleAppointmentSetResponse(url, JSON.parse(response));
         });
     }

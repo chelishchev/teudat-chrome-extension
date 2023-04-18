@@ -11,6 +11,9 @@ export default class AutoSelectDepartment {
         this.xhrSubstitute.addHandler('https://central.myvisit.com/CentralAPI/AppointmentSet', (url, response) => {
             this.handleAppointmentSetResponse(url, JSON.parse(response));
         });
+        this.xhrSubstitute.addHandler('https://piba-api.myvisit.com/CentralAPI/AppointmentSet', (url, response) => {
+            this.handleAppointmentSetResponse(url, JSON.parse(response));
+        });
     }
 
     helpPeopleToSelectDesiredDepartment() {
