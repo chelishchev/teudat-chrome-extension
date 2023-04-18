@@ -72,6 +72,7 @@ export class ResultTable {
     }
 
     changeStatusAsContinue() {
+        this.errorStatusValue = null;
         this.statusValue.innerText = 'Продолжим поиск через несколько минут...';
     }
 

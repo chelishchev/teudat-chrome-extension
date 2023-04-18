@@ -2058,6 +2058,7 @@ class ResultTable {
     }
 
     changeStatusAsContinue() {
+        this.errorStatusValue = null;
         this.statusValue.innerText = 'Продолжим поиск через несколько минут...';
     }
 
@@ -2696,15 +2697,12 @@ class FinderSlots
 		const _ = ({departmentInfo} = {}) => {
 			return async () => {
 				await this.loadRequestConfig();
-				this.resultTable.changeDepartment(departmentInfo.Label);
-				await this.sendMessage({
-					action: 'page-worker-work-with',
-					department: departmentInfo,
-				});
 				if (this.preventContinue)
 				{
 					return {department: departmentInfo, data: {Success: false, Message: 'STOPPED'}};
 				}
+				this.resultTable.changeDepartment(departmentInfo.Label);
+				console.log('page-worker-work-with', departmentInfo);
 
 				return await this.requestSlots(departmentInfo);
 			};
@@ -2746,6 +2744,7 @@ class FinderSlots
 			});
 
 			setTimeout(() => {
+				this.preventContinue = false;
 				this.start();
 			}, TIMEOUT_TO_REPEAT);
 		});
