@@ -42,7 +42,7 @@ xhrSubstitute.substitute();
 		{departments, resultTable, xhrSubstitute, backendService}
 	);
 
-	locationSearch.fallbackWhenDateNotInLabel(() => {
+	locationSearch.fallbackWhenDateNotInLabel((locationResponse) => {
 		const desiredDepartmentId = getSyncValue('desiredDepartmentId');
 		if (desiredDepartmentId) {
 			const autoSelectDepartment = new AutoSelectDepartment(desiredDepartmentId, {departments, xhrSubstitute, backendService});
@@ -50,6 +50,7 @@ xhrSubstitute.substitute();
 				autoSelectDepartment.helpPeopleToSelectDesiredDepartment();
 			}, 1000);
 		} else {
+			departments.setOriginalOrderByLocationResponse(locationResponse);
 			const finderSlots = new FinderSlots({departments, resultTable, backendService});
 			finderSlots.start();
 		}

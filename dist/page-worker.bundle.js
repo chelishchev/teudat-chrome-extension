@@ -7,8 +7,14 @@ class Departments
 {
 	constructor()
 	{
+		this.orderedDepartmentIds = [];
 		this.departments = this.loadData();
 		this.cache = new Map();
+	}
+
+	setOriginalOrderByLocationResponse(orderedDepartments)
+	{
+		this.orderedDepartmentIds = orderedDepartments.map(department => department.ServiceId);
 	}
 
 	#toBinary(string)
@@ -121,9 +127,17 @@ class Departments
 		let index = 0;
 		const departments = this.getDepartments();
 
+		if (this.orderedDepartmentIds.length > 0)
+		{
+			departments.sort((a, b) => {
+				return this.orderedDepartmentIds.indexOf(a.ServiceId) - this.orderedDepartmentIds.indexOf(b.ServiceId);
+			});
+		}
+
 		return {
 			next: () => {
-				if (index < departments.length) {
+				if (index < departments.length)
+				{
 					for (let i = index; i < departments.length; i++)
 					{
 						let department = departments[i];
@@ -2326,7 +2340,7 @@ class LocationSearch {
 			if (this.fallback) {
 				console.warn("Fall back to original location search");
 
-				this.fallback();
+				this.fallback(response.Results);
 			}
 
 			return;
@@ -2947,7 +2961,7 @@ xhrSubstitute.substitute();
 		{departments, resultTable, xhrSubstitute, backendService}
 	);
 
-	locationSearch.fallbackWhenDateNotInLabel(() => {
+	locationSearch.fallbackWhenDateNotInLabel((locationResponse) => {
 		const desiredDepartmentId = getSyncValue('desiredDepartmentId');
 		if (desiredDepartmentId) {
 			const autoSelectDepartment = new AutoSelectDepartment(desiredDepartmentId, {departments, xhrSubstitute, backendService});
@@ -2955,6 +2969,7 @@ xhrSubstitute.substitute();
 				autoSelectDepartment.helpPeopleToSelectDesiredDepartment();
 			}, 1000);
 		} else {
+			departments.setOriginalOrderByLocationResponse(locationResponse);
 			const finderSlots = new FinderSlots({departments, resultTable, backendService});
 			finderSlots.start();
 		}

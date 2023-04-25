@@ -2,8 +2,14 @@ export class Departments
 {
 	constructor()
 	{
+		this.orderedDepartmentIds = [];
 		this.departments = this.loadData();
 		this.cache = new Map();
+	}
+
+	setOriginalOrderByLocationResponse(orderedDepartments)
+	{
+		this.orderedDepartmentIds = orderedDepartments.map(department => department.ServiceId);
 	}
 
 	#toBinary(string)
@@ -116,9 +122,17 @@ export class Departments
 		let index = 0;
 		const departments = this.getDepartments();
 
+		if (this.orderedDepartmentIds.length > 0)
+		{
+			departments.sort((a, b) => {
+				return this.orderedDepartmentIds.indexOf(a.ServiceId) - this.orderedDepartmentIds.indexOf(b.ServiceId);
+			});
+		}
+
 		return {
 			next: () => {
-				if (index < departments.length) {
+				if (index < departments.length)
+				{
 					for (let i = index; i < departments.length; i++)
 					{
 						let department = departments[i];

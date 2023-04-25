@@ -107,7 +107,7 @@ export class LocationSearch {
 			if (this.fallback) {
 				console.warn("Fall back to original location search");
 
-				this.fallback();
+				this.fallback(response.Results);
 			}
 
 			return;
