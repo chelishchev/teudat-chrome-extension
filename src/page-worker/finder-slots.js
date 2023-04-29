@@ -1,13 +1,16 @@
 import {Departments} from "./departments";
 import {AutoQueue} from "./queue";
+import {FetchTransport} from "./fetch-transport";
 
 const MAX_RESPONSE_RESULT = 2;
 const TIMEOUT = 5*1000;
 const TIMEOUT_TO_REPEAT = 3*60*1000;
 export class FinderSlots
 {
-	constructor({departments, resultTable, backendService})
+	constructor({departments, resultTable, backendService, prepareVisit})
 	{
+		/** @type {PrepareVisit} */
+		this.prepareVisit = prepareVisit;
 		this.preventContinue = false;
 		/** @type {BackendService} */
 		this.backendService = backendService;
@@ -129,12 +132,6 @@ export class FinderSlots
 			"cache-control": "no-cache",
 			"pragma": "no-cache",
 			"preparedvisittoken": this.tokenConfig["preparedvisittoken"],
-			"sec-ch-ua": "\"Google Chrome\";v=\"107\", \"Chromium\";v=\"107\", \"Not=A?Brand\";v=\"24\"",
-			"sec-ch-ua-mobile": "?0",
-			"sec-ch-ua-platform": "\"macOS\"",
-			"sec-fetch-dest": "empty",
-			"sec-fetch-mode": "cors",
-			"sec-fetch-site": "same-site"
 		};
 	}
 
@@ -152,25 +149,43 @@ export class FinderSlots
 			}
 
 			const currentDateString = this.getCurrentDateString();
-
-			fetch(`https://piba-api.myvisit.com/CentralAPI/SearchAvailableDates?maxResults=${MAX_RESPONSE_RESULT}&serviceId=${department.ServiceId}&startDate=${currentDateString}`, {
-				"headers": requestHeaders,
-				"referrer": "https://piba.myvisit.com/",
-				"referrerPolicy": "no-referrer-when-downgrade",
-				"body": null,
-				"method": "GET",
-				"mode": "cors",
-				"credentials": "include"
-			}).then(response => {
-				const status = response.status;
-				if(response.ok) {
-					return response.json().then(data => {
-						resolve({department, data});
-						console.log('RESPONSE', {department, data}, status);
-					});
+			FetchTransport.query(
+				`https://piba-api.myvisit.com/CentralAPI/SearchAvailableDates?maxResults=${MAX_RESPONSE_RESULT}&serviceId=${department.ServiceId}&startDate=${currentDateString}`,
+				null,
+				'GET',
+				requestHeaders,
+				{
+					"referrer": "https://piba.myvisit.com/",
+					"referrerPolicy": "no-referrer-when-downgrade",
+					// "mode": "cors",
+					"credentials": "include",
 				}
-				if(status !== 403) {
-					this.backendService.notify('reloadPage');
+			).then(async response => {
+				const status = response.status;
+				if (status >= 200 && status < 300)
+				{
+					resolve({department, data: response.response});
+					console.log('RESPONSE', {department, data: response.response}, status);
+					return;
+				}
+				if (status === 503)
+				{
+					const newVisitToken = await this.prepareVisit.getPreparedVisitToken();
+					if (newVisitToken)
+					{
+						this.tokenConfig["preparedvisittoken"] = newVisitToken;
+						let syncConfig = document.documentElement.dataset.syncConfig;
+						if (syncConfig)
+						{
+							syncConfig = JSON.parse(syncConfig);
+							syncConfig["preparedvisittoken"] = newVisitToken;
+							document.documentElement.dataset.syncConfig = JSON.stringify(syncConfig);
+						}
+					}
+				}
+				if (status === 403)
+				{
+
 				}
 				resolve({department: department, data: {Success: false, Message: 'BAD RESPONSE', Type: 'reloadPage'}});
 

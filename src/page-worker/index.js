@@ -7,6 +7,7 @@ import {MouseEventSimulator} from "./mouse-simulator";
 import {BackendService} from "./backend-service";
 import {FinderSlots} from "./finder-slots";
 import AutoSelectDepartment from "./auto-select-department";
+import {PrepareVisit} from "./prepare-visit";
 
 const xhrSubstitute = new XhrSubstitute();
 xhrSubstitute.substitute();
@@ -36,6 +37,7 @@ xhrSubstitute.substitute();
 
 	(new FormFiller({backendService})).fillByMySelf();
 
+	const prepareVisit = new PrepareVisit({backendService});
 	const departments = new Departments();
 
 	const locationSearch = new LocationSearch(
@@ -51,7 +53,7 @@ xhrSubstitute.substitute();
 			}, 1000);
 		} else {
 			departments.setOriginalOrderByLocationResponse(locationResponse);
-			const finderSlots = new FinderSlots({departments, resultTable, backendService});
+			const finderSlots = new FinderSlots({departments, resultTable, backendService, prepareVisit});
 			finderSlots.start();
 		}
 	});
