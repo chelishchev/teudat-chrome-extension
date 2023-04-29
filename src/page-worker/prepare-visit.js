@@ -54,7 +54,10 @@ export class PrepareVisit
             console.warn("Can't get preparedVisitToken");
             return undefined;
         }
-        console.log('got new preparedVisitToken', question.PreparedVisitToken);
+        const currentTime = new Date();
+        const formattedTime = currentTime.getHours() + ":" + currentTime.getMinutes() + ":" + currentTime.getSeconds();
+
+        console.log('got new preparedVisitToken', question.PreparedVisitToken, formattedTime);
 
         return question.PreparedVisitToken;
     }
