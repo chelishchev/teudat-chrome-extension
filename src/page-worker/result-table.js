@@ -18,16 +18,17 @@ export class ResultTable {
         const container = this.createElement('div', 'teudat-container');
         this.loadingImage = this.createLoadingImage();
 
+        const settingRow = this.createRow([
+            document.createTextNode('Изменить отделения для поиска вы можете на странице расширения MyVisit Rega Helper, кликнув на значок (🧩) в правом верхнем углу браузера'),
+            document.createElement('br'),
+            document.createElement('br'),
+        ]);
+
         const statusRow = this.createRow([
             this.createElement('span', null, 'Статус:&nbsp;'),
             this.statusValue = this.createElement('span', null, 'Ищем...'),
             this.loadingImage,
         ]);
-
-        // const currentDepartmentInWork = this.createRow([
-        //     this.createElement('span', null, 'Work with Department:&nbsp;'),
-        //     this.departmentValue = this.createElement('span', null, '...'),
-        // ]);
 
         const lastCheckDatetime = this.createRow([
             this.createElement('span', null, 'Последняя проверка:&nbsp;'),
@@ -38,6 +39,7 @@ export class ResultTable {
             this.resultList = this.createElement('ul', null)
         ]);
 
+        container.appendChild(settingRow);
         container.appendChild(statusRow);
         container.appendChild(lastCheckDatetime);
         container.appendChild(results);

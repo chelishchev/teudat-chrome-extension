@@ -2018,16 +2018,17 @@ class ResultTable {
         const container = this.createElement('div', 'teudat-container');
         this.loadingImage = this.createLoadingImage();
 
+        const settingRow = this.createRow([
+            document.createTextNode('Изменить отделения для поиска вы можете на странице расширения MyVisit Rega Helper, кликнув на значок (🧩) в правом верхнем углу браузера'),
+            document.createElement('br'),
+            document.createElement('br'),
+        ]);
+
         const statusRow = this.createRow([
             this.createElement('span', null, 'Статус:&nbsp;'),
             this.statusValue = this.createElement('span', null, 'Ищем...'),
             this.loadingImage,
         ]);
-
-        // const currentDepartmentInWork = this.createRow([
-        //     this.createElement('span', null, 'Work with Department:&nbsp;'),
-        //     this.departmentValue = this.createElement('span', null, '...'),
-        // ]);
 
         const lastCheckDatetime = this.createRow([
             this.createElement('span', null, 'Последняя проверка:&nbsp;'),
@@ -2038,6 +2039,7 @@ class ResultTable {
             this.resultList = this.createElement('ul', null)
         ]);
 
+        container.appendChild(settingRow);
         container.appendChild(statusRow);
         container.appendChild(lastCheckDatetime);
         container.appendChild(results);
@@ -2484,7 +2486,39 @@ class MouseEventSimulator {
         }
     }
 }
+;// CONCATENATED MODULE: ./src/page-worker/fetch-transport.js
+class FetchTransport {
+
+    static async query(url, body, method = 'POST', customHeaders = {}, additionalOptions = {}) {
+        const headers = {
+            ...customHeaders,
+        };
+
+        return new Promise((resolve, reject) => {
+            const reqId = Math.random().toString(36).substring(2, 15)
+
+            window.postMessage({
+                reqId: reqId,
+                type: 'FETCH',
+                method: method,
+                headers: headers,
+                body: method !== 'GET' ? JSON.stringify(body) : null,
+                url: url,
+                ...additionalOptions,
+            }, window.location.origin)
+
+            window.addEventListener('message', function (event) {
+                if (event.data.reqId === reqId && event.data.type === 'FETCH_RESPONSE') {
+                    console.log('FetchTransport RESPONSE', event.data);
+                    resolve(event.data.response);
+                }
+            });
+        });
+    }
+}
 ;// CONCATENATED MODULE: ./src/page-worker/backend-service.js
+
+
 class BackendService {
     constructor(token, useTrickyFetch = true) {
         this.lastSentTimes = {};
@@ -2561,25 +2595,7 @@ class BackendService {
             });
         }
 
-        return new Promise((resolve, reject) => {
-            const reqId = Math.random().toString(36).substring(2, 15)
-
-            window.postMessage({
-                reqId: reqId,
-                type: 'FETCH',
-                method: method,
-                headers: headers,
-                body: method !== 'GET' ? JSON.stringify(body) : null,
-                url: url,
-            }, window.location.origin)
-
-            window.addEventListener('message', function (event) {
-                console.log('RESPONSE', event.data);
-                if (event.data.reqId === reqId && event.data.type === 'FETCH_RESPONSE') {
-                    resolve(event.data.response);
-                }
-            });
-        });
+        return FetchTransport.query(url, body, method, headers);
     }
 }
 ;// CONCATENATED MODULE: ./src/page-worker/queue.js
@@ -2655,13 +2671,17 @@ class AutoQueue extends Queue
 
 
 
+
+const MAX_DEPARTMENT_STEPS = 5;
 const MAX_RESPONSE_RESULT = 2;
 const finder_slots_TIMEOUT = 5*1000;
 const TIMEOUT_TO_REPEAT = 3*60*1000;
 class FinderSlots
 {
-	constructor({departments, resultTable, backendService})
+	constructor({departments, resultTable, backendService, prepareVisit, configDepartments})
 	{
+		/** @type {PrepareVisit} */
+		this.prepareVisit = prepareVisit;
 		this.preventContinue = false;
 		/** @type {BackendService} */
 		this.backendService = backendService;
@@ -2670,6 +2690,7 @@ class FinderSlots
 		this.resultTableInserted = false;
 		/** @type {Departments} */
 		this.departments = departments;
+		this.configDepartments = configDepartments;
 		this.tokenConfig = {};
 	}
 
@@ -2722,8 +2743,22 @@ class FinderSlots
 			};
 		};
 
+		let counter = 0;
 		for (let department of departments)
 		{
+			counter++;
+			if (!this.configDepartments.length)
+			{
+				if (counter > MAX_DEPARTMENT_STEPS)
+				{
+					break;
+				}
+			}
+			else if (!this.configDepartments.includes(department.ServiceId))
+			{
+				continue;
+			}
+
 			let departmentInfo = department;
 			autoQueue.enqueue(_({departmentInfo})).then(({department, data}) => {
 				console.log('QUEUE', {department, data});
@@ -2783,12 +2818,6 @@ class FinderSlots
 			"cache-control": "no-cache",
 			"pragma": "no-cache",
 			"preparedvisittoken": this.tokenConfig["preparedvisittoken"],
-			"sec-ch-ua": "\"Google Chrome\";v=\"107\", \"Chromium\";v=\"107\", \"Not=A?Brand\";v=\"24\"",
-			"sec-ch-ua-mobile": "?0",
-			"sec-ch-ua-platform": "\"macOS\"",
-			"sec-fetch-dest": "empty",
-			"sec-fetch-mode": "cors",
-			"sec-fetch-site": "same-site"
 		};
 	}
 
@@ -2806,24 +2835,43 @@ class FinderSlots
 			}
 
 			const currentDateString = this.getCurrentDateString();
-
-			fetch(`https://piba-api.myvisit.com/CentralAPI/SearchAvailableDates?maxResults=${MAX_RESPONSE_RESULT}&serviceId=${department.ServiceId}&startDate=${currentDateString}`, {
-				"headers": requestHeaders,
-				"referrer": "https://piba.myvisit.com/",
-				"referrerPolicy": "no-referrer-when-downgrade",
-				"body": null,
-				"method": "GET",
-				"mode": "cors",
-				"credentials": "include"
-			}).then(response => {
-				const status = response.status;
-				if(response.ok) {
-					return response.json().then(data => {
-						resolve({department, data});
-						console.log('RESPONSE', {department, data}, status);
-					});
+			FetchTransport.query(
+				`https://piba-api.myvisit.com/CentralAPI/SearchAvailableDates?maxResults=${MAX_RESPONSE_RESULT}&serviceId=${department.ServiceId}&startDate=${currentDateString}`,
+				null,
+				'GET',
+				requestHeaders,
+				{
+					"referrer": "https://piba.myvisit.com/",
+					"referrerPolicy": "no-referrer-when-downgrade",
+					// "mode": "cors",
+					"credentials": "include",
 				}
-				if(status !== 403) {
+			).then(async response => {
+				const status = response.status;
+				if (status >= 200 && status < 300)
+				{
+					resolve({department, data: response.response});
+					console.log('RESPONSE', {department, data: response.response}, status);
+					return;
+				}
+				if (status === 503)
+				{
+					const newVisitToken = await this.prepareVisit.getPreparedVisitToken();
+					if (newVisitToken)
+					{
+						this.tokenConfig["preparedvisittoken"] = newVisitToken;
+						let syncConfig = document.documentElement.dataset.syncConfig;
+						if (syncConfig)
+						{
+							syncConfig = JSON.parse(syncConfig);
+							syncConfig["preparedvisittoken"] = newVisitToken;
+							document.documentElement.dataset.syncConfig = JSON.stringify(syncConfig);
+						}
+					}
+				}
+				if (status === 403 || status === 401)
+				{
+					this.preventContinue = true;
 					this.backendService.notify('reloadPage');
 				}
 				resolve({department: department, data: {Success: false, Message: 'BAD RESPONSE', Type: 'reloadPage'}});
@@ -2916,7 +2964,156 @@ class AutoSelectDepartment {
         }
     }
 }
+;// CONCATENATED MODULE: ./src/page-worker/prepare-visit.js
+class PrepareVisit
+{
+    constructor({backendService})
+    {
+        /** @type {BackendService} */
+        this.backendService = backendService;
+        this.tokenConfig = {};
+        this.person = {};
+    }
+
+    async loadRequestConfig()
+    {
+        const syncConfig = document.documentElement.dataset.syncConfig;
+        this.tokenConfig = syncConfig === undefined ? {} : JSON.parse(syncConfig);
+    }
+
+    getRequestHeaders()
+    {
+        return {
+            accept: "application/json, text/plain, */*",
+            "accept-language": "en",
+            "content-Type": "application/json",
+            "application-api-key": this.tokenConfig["application-api-key"],
+            "application-name": this.tokenConfig["application-name"],
+            "cache-control": "no-cache",
+            pragma: "no-cache",
+        };
+    }
+
+    async getPreparedVisitToken()
+    {
+        await this.loadRequestConfig();
+        await this.loadPerson();
+
+        let question = await this.makeNewVisit();
+
+        let count = 1;
+        while (!this.isQuestionDone(question) && !this.hasError(question))
+        {
+            question = await this.answerQuestion(
+                question
+            );
+
+            count++;
+            if (count > 3)
+            {
+                console.warn("Can't get preparedVisitToken");
+                return undefined;
+            }
+        }
+
+        if (this.hasError(question))
+        {
+            console.warn("Can't get preparedVisitToken");
+            return undefined;
+        }
+        const currentTime = new Date();
+        const formattedTime = currentTime.getHours() + ":" + currentTime.getMinutes() + ":" + currentTime.getSeconds();
+
+        console.log('got new preparedVisitToken', question.PreparedVisitToken, formattedTime);
+
+        return question.PreparedVisitToken;
+    }
+
+    async loadPerson()
+    {
+        this.person = await this.backendService.getUserData()
+    }
+
+    getPersonId()
+    {
+        return this.person.idNumber;
+    }
+
+    getPersonShortPhone()
+    {
+        return this.person.shortMobilePhone;
+    }
+
+    getAnswerTextByQuestionId(questionId)
+    {
+        const answers = {
+            113: this.getPersonId(),
+            114: this.getPersonShortPhone(),
+        };
+
+        return answers[questionId] || console.warn("Unknown questionId", questionId);
+    }
+
+    async answerQuestion(questionData)
+    {
+        const preparedVisitToken = questionData.PreparedVisitToken;
+        const response = await fetch(
+            `https://piba-api.myvisit.com/CentralAPI/PreparedVisit/${preparedVisitToken}/Answer`,
+            {
+                headers: this.getRequestHeaders(),
+                referrer: "https://piba.myvisit.com/",
+                referrerPolicy: "no-referrer-when-downgrade",
+                body: JSON.stringify(this.buildPayloadForAnswer(questionData)),
+                method: "POST",
+                mode: "cors",
+                credentials: "include",
+            }
+        );
+
+        return response.ok ? response.json().then((res) => res.Data) : undefined;
+    }
+
+    buildPayloadForAnswer(questionData)
+    {
+        return {
+            PreparedVisitToken: questionData.PreparedVisitToken,
+            QuestionnaireItemId: questionData.QuestionnaireItem.QuestionnaireItemId,
+            QuestionId: questionData.QuestionnaireItem.QuestionId,
+            AnswerIds: null,
+            AnswerText: this.getAnswerTextByQuestionId(questionData.QuestionnaireItem.QuestionId),
+        };
+    }
+
+    hasError(questionData)
+    {
+        return Boolean(questionData.Validation?.Messages?.[0]);
+    }
+
+    isQuestionDone(questionData)
+    {
+        return !Boolean(questionData.QuestionnaireItem);
+    }
+
+    async makeNewVisit()
+    {
+        const response = await fetch(
+            "https://piba-api.myvisit.com/CentralAPI/Organization/56/PrepareVisit",
+            {
+                headers: this.getRequestHeaders(),
+                referrer: "https://piba.myvisit.com/",
+                referrerPolicy: "no-referrer-when-downgrade",
+                body: null,
+                method: "POST",
+                mode: "cors",
+                credentials: "include",
+            }
+        );
+
+        return response.ok ? response.json().then((res) => res.Data) : undefined;
+    }
+}
 ;// CONCATENATED MODULE: ./src/page-worker/index.js
+
 
 
 
@@ -2935,6 +3132,8 @@ xhrSubstitute.substitute();
 (async () => {
 	const token = getSyncValue('syncToken');
 	const status = getSyncValue('syncIsDisabled');
+	const configDepartments = getSyncValue('configDepartments');
+
 	if (status) {
 		console.warn('Disabled by user');
 
@@ -2955,6 +3154,7 @@ xhrSubstitute.substitute();
 
 	(new FormFiller({backendService})).fillByMySelf();
 
+	const prepareVisit = new PrepareVisit({backendService});
 	const departments = new Departments();
 
 	const locationSearch = new LocationSearch(
@@ -2970,7 +3170,7 @@ xhrSubstitute.substitute();
 			}, 1000);
 		} else {
 			departments.setOriginalOrderByLocationResponse(locationResponse);
-			const finderSlots = new FinderSlots({departments, resultTable, backendService});
+			const finderSlots = new FinderSlots({departments, resultTable, backendService, prepareVisit, configDepartments});
 			finderSlots.start();
 		}
 	});
