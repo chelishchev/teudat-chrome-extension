@@ -183,9 +183,10 @@ export class FinderSlots
 						}
 					}
 				}
-				if (status === 403)
+				if (status === 403 || status === 401)
 				{
-
+					this.preventContinue = true;
+					this.backendService.notify('reloadPage');
 				}
 				resolve({department: department, data: {Success: false, Message: 'BAD RESPONSE', Type: 'reloadPage'}});
 
