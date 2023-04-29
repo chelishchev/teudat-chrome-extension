@@ -84,8 +84,7 @@ export class FinderSlots
 					break;
 				}
 			}
-
-			if (!this.configDepartments.includes(department.ServiceId))
+			else if (!this.configDepartments.includes(department.ServiceId))
 			{
 				continue;
 			}
