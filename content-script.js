@@ -19,17 +19,9 @@
             return;
 
         if (event.data.type === "FETCH") {
-            const reqId = event.data.reqId;
-            const url = event.data.url;
-            const method = event.data.method;
-            const body = event.data.body;
-            const headers = event.data.headers;
+            const { reqId, url, ...fetchProps } = event.data;
 
-            fetch(url, {
-                method: method,
-                headers: headers,
-                body: body,
-            }).then(async response => {
+            fetch(url, fetchProps).then(async response => {
                 if (response.ok) {
                     const jsonResponse = await response.json()
                     return {
@@ -41,6 +33,11 @@
                         status: response.status,
                         response: null,
                     }
+                }
+            }, () => {
+                return {
+                    status: 503,
+                    response: null,
                 }
             }).then(response => {
                 window.postMessage({

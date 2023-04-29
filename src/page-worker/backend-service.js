@@ -1,3 +1,5 @@
+import {FetchTransport} from "./fetch-transport";
+
 export class BackendService {
     constructor(token, useTrickyFetch = true) {
         this.lastSentTimes = {};
@@ -74,24 +76,6 @@ export class BackendService {
             });
         }
 
-        return new Promise((resolve, reject) => {
-            const reqId = Math.random().toString(36).substring(2, 15)
-
-            window.postMessage({
-                reqId: reqId,
-                type: 'FETCH',
-                method: method,
-                headers: headers,
-                body: method !== 'GET' ? JSON.stringify(body) : null,
-                url: url,
-            }, window.location.origin)
-
-            window.addEventListener('message', function (event) {
-                console.log('RESPONSE', event.data);
-                if (event.data.reqId === reqId && event.data.type === 'FETCH_RESPONSE') {
-                    resolve(event.data.response);
-                }
-            });
-        });
+        return FetchTransport.query(url, body, method, headers);
     }
 }
