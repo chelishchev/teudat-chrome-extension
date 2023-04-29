@@ -1,10 +1,11 @@
-class PrepareVisit
+export class PrepareVisit
 {
     constructor({backendService})
     {
         /** @type {BackendService} */
         this.backendService = backendService;
         this.tokenConfig = {};
+        this.person = {};
     }
 
     async loadRequestConfig()
@@ -29,6 +30,8 @@ class PrepareVisit
     async getPreparedVisitToken()
     {
         await this.loadRequestConfig();
+        await this.loadPerson();
+
         let question = await this.makeNewVisit();
 
         let count = 1;
@@ -51,18 +54,24 @@ class PrepareVisit
             console.warn("Can't get preparedVisitToken");
             return undefined;
         }
+        console.log('got new preparedVisitToken', question.PreparedVisitToken);
 
         return question.PreparedVisitToken;
     }
 
+    async loadPerson()
+    {
+        this.person = await this.backendService.getUserData()
+    }
+
     getPersonId()
     {
-        return "";
+        return this.person.idNumber;
     }
 
     getPersonShortPhone()
     {
-        return "";
+        return this.person.shortMobilePhone;
     }
 
     getAnswerTextByQuestionId(questionId)
