@@ -6,11 +6,13 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
         const config = request.config;
         const status = await chrome.storage.sync.get('isDisabled');
         const token = await chrome.storage.sync.get('personalToken');
-        console.log('sync', config, status, token);
+        const configDepartments = await chrome.storage.sync.get('departments');
+        console.log('sync', config, status, token, configDepartments);
 
         document.documentElement.dataset.syncConfig = JSON.stringify(config || {});
         document.documentElement.dataset.syncIsDisabled = JSON.stringify(status.isDisabled || false);
         document.documentElement.dataset.syncToken = token.personalToken;
+        document.documentElement.dataset.configDepartments = JSON.stringify(configDepartments.departments || []);
 	}
     if (request.action === 'site-opened')
     {

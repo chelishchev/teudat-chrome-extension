@@ -17,6 +17,8 @@ xhrSubstitute.substitute();
 (async () => {
 	const token = getSyncValue('syncToken');
 	const status = getSyncValue('syncIsDisabled');
+	const configDepartments = getSyncValue('configDepartments');
+
 	if (status) {
 		console.warn('Disabled by user');
 
@@ -53,7 +55,7 @@ xhrSubstitute.substitute();
 			}, 1000);
 		} else {
 			departments.setOriginalOrderByLocationResponse(locationResponse);
-			const finderSlots = new FinderSlots({departments, resultTable, backendService, prepareVisit});
+			const finderSlots = new FinderSlots({departments, resultTable, backendService, prepareVisit, configDepartments});
 			finderSlots.start();
 		}
 	});

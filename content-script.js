@@ -1,9 +1,11 @@
 (async () => {
     const status = await chrome.storage.sync.get('isDisabled');
     const token = await chrome.storage.sync.get('personalToken');
+    const configDepartments = await chrome.storage.sync.get('departments');
 
     document.documentElement.dataset.syncIsDisabled = JSON.stringify(('isDisabled' in status) ? status.isDisabled : false);
     document.documentElement.dataset.syncToken = JSON.stringify(('personalToken' in token) ? token.personalToken : false.personalToken);
+    document.documentElement.dataset.configDepartments = JSON.stringify(configDepartments.departments || []);
 
     const s = document.createElement('script')
     s.src = chrome.runtime.getURL('dist/page-worker.bundle.js')

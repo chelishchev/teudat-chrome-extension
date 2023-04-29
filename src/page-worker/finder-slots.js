@@ -2,12 +2,13 @@ import {Departments} from "./departments";
 import {AutoQueue} from "./queue";
 import {FetchTransport} from "./fetch-transport";
 
+const MAX_DEPARTMENT_STEPS = 5;
 const MAX_RESPONSE_RESULT = 2;
 const TIMEOUT = 5*1000;
 const TIMEOUT_TO_REPEAT = 3*60*1000;
 export class FinderSlots
 {
-	constructor({departments, resultTable, backendService, prepareVisit})
+	constructor({departments, resultTable, backendService, prepareVisit, configDepartments})
 	{
 		/** @type {PrepareVisit} */
 		this.prepareVisit = prepareVisit;
@@ -19,6 +20,7 @@ export class FinderSlots
 		this.resultTableInserted = false;
 		/** @type {Departments} */
 		this.departments = departments;
+		this.configDepartments = configDepartments;
 		this.tokenConfig = {};
 	}
 
@@ -71,8 +73,23 @@ export class FinderSlots
 			};
 		};
 
+		let counter = 0;
 		for (let department of departments)
 		{
+			counter++;
+			if (!this.configDepartments.length)
+			{
+				if (counter > MAX_DEPARTMENT_STEPS)
+				{
+					break;
+				}
+			}
+
+			if (!this.configDepartments.includes(department.ServiceId))
+			{
+				continue;
+			}
+
 			let departmentInfo = department;
 			autoQueue.enqueue(_({departmentInfo})).then(({department, data}) => {
 				console.log('QUEUE', {department, data});
