@@ -8,9 +8,11 @@ const switcher = document.querySelector('#switcher');
 
 const selectComponent = initSelectComponent();
 selectComponent.on('change', () => {
+    const departmentIds = selectComponent.getValue().map(v => parseInt(v));
     chrome.storage.sync.set({
-        departments: selectComponent.getValue().map(v => parseInt(v)),
+        departments: departmentIds,
     });
+    saveDepartmentIds(tokenInput.value, departmentIds);
 });
 
 switcher.addEventListener('click', async (event) => {
@@ -88,6 +90,16 @@ async function loadUserData(token, ) {
     const backendService = new BackendService(token, false);
 
     return await backendService.getUserData();
+}
+
+async function saveDepartmentIds(token, ids) {
+    if (!ids || !token) {
+        return null;
+    }
+
+    const backendService = new BackendService(token, false);
+
+    return await backendService.saveDepartmentIds(ids);
 }
 
 function toggleSwitchButtons(isDisabled) {

@@ -2561,6 +2561,12 @@ class BackendService {
         }
     }
 
+    async saveDepartmentIds(ids) {
+        return this.query('saveDepartmentIds', {
+            ids: ids,
+        });
+    }
+
     async get(action) {
         return this.query(action, {}, 'GET');
     }
