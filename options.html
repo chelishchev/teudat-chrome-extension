@@ -3,6 +3,8 @@
 <head>
     <meta charset="utf-8">
     <link rel="stylesheet" href="/dist/bootstrap.min.css">
+    <link rel="stylesheet" href="/dist/tom-select.min.css">
+    <script src="/dist/tom-select.complete.js"></script>
 </head>
 <body>
 <div class="container col-xl-10 col-xxl-8 px-4 py-5">
@@ -18,7 +20,7 @@
             <input id="token" name="token" class="form-control" placeholder="Уникальный код">
             <label for="token">Введите код</label>
           </div>
-          <span id="status"></span>
+          <select id="departments" multiple placeholder="Выберите отделения"></select><br>
           <button class="w-100 btn btn-lg btn-primary" type="button" id="save">Сохранить</button>
           <hr class="my-4">
           <small class="text-muted">Код можно получить в Telegram боте <a href="https://t.me/myvisit_rega_bot" target="_blank">MyVisit Rega Bot</a></small>

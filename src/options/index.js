@@ -1,9 +1,17 @@
 import {BackendService} from "../page-worker/backend-service";
+import {Departments} from "../page-worker/departments";
+
 
 const tokenInput = document.querySelector('#token');
 const saveButton = document.querySelector('#save');
-const status = document.querySelector('#status');
 const switcher = document.querySelector('#switcher');
+
+const selectComponent = initSelectComponent();
+selectComponent.on('change', () => {
+    chrome.storage.sync.set({
+        departments: selectComponent.getValue().map(v => parseInt(v)),
+    });
+});
 
 switcher.addEventListener('click', async (event) => {
     const desiredStatus = switcher.dataset.isDisabled === '1' ;
@@ -43,6 +51,8 @@ saveButton.addEventListener('click', async (event) => {
     if (userData) {
         showUserData(userData);
     }
+
+    selectComponent.setValue(await loadSelectedDepartments());
 
     const isDisabled = await chrome.storage.sync.get('isDisabled');
     toggleSwitchButtons(isDisabled.isDisabled);
@@ -94,4 +104,29 @@ async function loadConfig() {
     const token = await chrome.storage.sync.get('personalToken');
 
     return token.personalToken || '';
+}
+
+async function loadSelectedDepartments() {
+    const data = await chrome.storage.sync.get('departments');
+
+    return data.departments || [];
+}
+
+function initSelectComponent()
+{
+    let choices = [];
+    const departments = new Departments();
+    for (let department of departments)
+    {
+        choices.push({id: department.ServiceId, label: department.Label, city: department.City});
+    }
+    return new TomSelect("#departments", {
+        plugins: ['remove_button'],
+        create: false,
+        maxItems: 5,
+        valueField: 'id',
+        labelField: 'label',
+        searchField: ['label', 'city'],
+        options: choices,
+    });
 }
