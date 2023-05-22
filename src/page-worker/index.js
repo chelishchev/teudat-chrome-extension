@@ -43,21 +43,13 @@ xhrSubstitute.substitute();
 	const departments = new Departments();
 
 	const locationSearch = new LocationSearch(
-		{departments, resultTable, xhrSubstitute, backendService}
+		{departments, resultTable, xhrSubstitute, backendService, configDepartments}
 	);
 
 	locationSearch.fallbackWhenDateNotInLabel((locationResponse) => {
-		const desiredDepartmentId = getSyncValue('desiredDepartmentId');
-		if (desiredDepartmentId) {
-			const autoSelectDepartment = new AutoSelectDepartment(desiredDepartmentId, {departments, xhrSubstitute, backendService});
-			setTimeout(() => {
-				autoSelectDepartment.helpPeopleToSelectDesiredDepartment();
-			}, 1000);
-		} else {
-			departments.setOriginalOrderByLocationResponse(locationResponse);
-			const finderSlots = new FinderSlots({departments, resultTable, backendService, prepareVisit, configDepartments});
-			finderSlots.start();
-		}
+		departments.setOriginalOrderByLocationResponse(locationResponse);
+		const finderSlots = new FinderSlots({departments, resultTable, backendService, prepareVisit, configDepartments});
+		finderSlots.start();
 	});
 
 	delete document.documentElement.dataset.gifPath;

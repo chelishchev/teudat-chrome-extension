@@ -1,9 +1,11 @@
 import {Departments} from "./departments";
+import AutoSelectDepartment from "./auto-select-department";
 
 const TIMEOUT = 3*60*1000;
 
 export class LocationSearch {
-	constructor({departments, resultTable, xhrSubstitute, backendService}) {
+	constructor({departments, resultTable, xhrSubstitute, backendService, configDepartments}) {
+		this.configDepartments = configDepartments;
 		/** @type {BackendService} */
 		this.backendService = backendService;
 		/** @type {ResultTable} */
@@ -25,6 +27,33 @@ export class LocationSearch {
 			this.handleLocationSearchResponse(JSON.parse(response));
 			this.originalLocationSearchUrl = url;
 		});
+	}
+
+	getSyncValue(key)
+	{
+		if (!(key in document.documentElement.dataset))
+		{
+			return null;
+		}
+		const value = document.documentElement.dataset[key];
+
+		return JSON.parse(value);
+	}
+	runAutoSelectDepartment()
+	{
+		const desiredDepartmentId = this.getSyncValue('desiredDepartmentId');
+		if (desiredDepartmentId)
+		{
+			const autoSelectDepartment = new AutoSelectDepartment(desiredDepartmentId, {
+				departments: this.departments,
+				xhrSubstitute: this.xhrSubstitute,
+				backendService: this.backendService,
+			});
+
+			setTimeout(() => {
+				autoSelectDepartment.helpPeopleToSelectDesiredDepartment();
+			}, 1000);
+		}
 	}
 
 	loadRequestConfig()
@@ -97,9 +126,11 @@ export class LocationSearch {
 		if (!response || !response.Success || !response.Results) {
 
 			this.resultTable.changeStatusAsError();
+			this.backendService.notify('reloadPage');
 
 			return;
 		}
+		this.runAutoSelectDepartment();
 
 		if (!this.hasResultDateInLocationName(response.Results[0])) {
 			console.warn("Can't find date in location name");
@@ -137,7 +168,10 @@ export class LocationSearch {
 				return;
 			}
 
-			this.addDepartmentToResultTable(departmentInfo);
+			if (!this.configDepartments.length || this.configDepartments.includes(departmentInfo.ServiceId))
+			{
+				this.addDepartmentToResultTable(departmentInfo);
+			}
 		});
 
 		console.log('WAITING FOR NEXT REQUEST', Date.now(), Date.now() + TIMEOUT);
@@ -168,14 +202,14 @@ export class LocationSearch {
 		if (!date)
 		{
 			this.resultTable.appendResult({
-				href: `https://piba.myvisit.com/#!/home/service/${department.ServiceId}`,
+				href: `https://piba.myvisit.com/#!/home/provider/56?d=${department.ServiceId}`,
 				name: label,
 			})
 		}
 		else
 		{
 			this.resultTable.appendResult({
-				href: `https://piba.myvisit.com/#!/home/service/${department.ServiceId}`,
+				href: `https://piba.myvisit.com/#!/home/provider/56?d=${department.ServiceId}`,
 				name: label,
 				date: date,
 				serviceId: department.ServiceId,

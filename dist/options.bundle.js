@@ -170,13 +170,22 @@ class Departments
 
 	getNodeOnPage(department)
 	{
-		const escapedAddress = department.LocationName.replace(/"/g, '\\"');
-		if (!this.cache.has(escapedAddress))
+		const locationName = department.LocationName;
+		if (!this.cache.has(locationName))
 		{
-			this.cache.set(escapedAddress, document.body.querySelector(`span[title="${escapedAddress}"]`));
+			const locationNodes = document.querySelectorAll('span[ng-show="!linkToLocation"]');
+			for (let i = 0; i < locationNodes.length; i++)
+			{
+				const node = locationNodes[i];
+				if (node.title === locationName || node.title.indexOf(locationName) !== -1)
+				{
+					this.cache.set(locationName, node);
+					break;
+				}
+			}
 		}
 
-		return this.cache.get(escapedAddress);
+		return this.cache.get(locationName);
 	}
 
 	clickOnDepartment(departmentId)

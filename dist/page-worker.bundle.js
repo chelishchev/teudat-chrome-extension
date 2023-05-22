@@ -52,13 +52,22 @@ class Departments
 
 	getNodeOnPage(department)
 	{
-		const escapedAddress = department.LocationName.replace(/"/g, '\\"');
-		if (!this.cache.has(escapedAddress))
+		const locationName = department.LocationName;
+		if (!this.cache.has(locationName))
 		{
-			this.cache.set(escapedAddress, document.body.querySelector(`span[title="${escapedAddress}"]`));
+			const locationNodes = document.querySelectorAll('span[ng-show="!linkToLocation"]');
+			for (let i = 0; i < locationNodes.length; i++)
+			{
+				const node = locationNodes[i];
+				if (node.title === locationName || node.title.indexOf(locationName) !== -1)
+				{
+					this.cache.set(locationName, node);
+					break;
+				}
+			}
 		}
 
-		return this.cache.get(escapedAddress);
+		return this.cache.get(locationName);
 	}
 
 	clickOnDepartment(departmentId)
@@ -2232,13 +2241,54 @@ class XhrSubstitute {
         }
     }
 }
+;// CONCATENATED MODULE: ./src/page-worker/auto-select-department.js
+class AutoSelectDepartment {
+    constructor(id, {departments, xhrSubstitute, backendService}) {
+        this.desiredDepartmentId = id;
+        /** @type {Departments} */
+        this.departments = departments;
+        /** @type {XhrSubstitute} */
+        this.xhrSubstitute = xhrSubstitute;
+        /** @type {BackendService} */
+        this.backendService = backendService;
+
+        this.xhrSubstitute.addHandler('https://central.myvisit.com/CentralAPI/AppointmentSet', (url, response) => {
+            this.handleAppointmentSetResponse(url, JSON.parse(response));
+        });
+        this.xhrSubstitute.addHandler('https://piba-api.myvisit.com/CentralAPI/AppointmentSet', (url, response) => {
+            this.handleAppointmentSetResponse(url, JSON.parse(response));
+        });
+    }
+
+    helpPeopleToSelectDesiredDepartment() {
+        this.departments.clickOnDepartment(this.desiredDepartmentId);
+    }
+
+    handleAppointmentSetResponse(queryUrl, response) {
+        if (!response.Success) {
+            return;
+        }
+        if (response.Results?.ServiceId == this.desiredDepartmentId) {
+            const departmentInfo = this.departments.getDepartmentById(this.desiredDepartmentId);
+            this.backendService.notify('appointmentGot', {
+                department: {
+                    serviceId: departmentInfo.ServiceId,
+                    name: departmentInfo.Label,
+                },
+                date: response.Results.ReferenceDate,
+            })
+        }
+    }
+}
 ;// CONCATENATED MODULE: ./src/page-worker/location-search.js
+
 
 
 const TIMEOUT = 3*60*1000;
 
 class LocationSearch {
-	constructor({departments, resultTable, xhrSubstitute, backendService}) {
+	constructor({departments, resultTable, xhrSubstitute, backendService, configDepartments}) {
+		this.configDepartments = configDepartments;
 		/** @type {BackendService} */
 		this.backendService = backendService;
 		/** @type {ResultTable} */
@@ -2260,6 +2310,33 @@ class LocationSearch {
 			this.handleLocationSearchResponse(JSON.parse(response));
 			this.originalLocationSearchUrl = url;
 		});
+	}
+
+	getSyncValue(key)
+	{
+		if (!(key in document.documentElement.dataset))
+		{
+			return null;
+		}
+		const value = document.documentElement.dataset[key];
+
+		return JSON.parse(value);
+	}
+	runAutoSelectDepartment()
+	{
+		const desiredDepartmentId = this.getSyncValue('desiredDepartmentId');
+		if (desiredDepartmentId)
+		{
+			const autoSelectDepartment = new AutoSelectDepartment(desiredDepartmentId, {
+				departments: this.departments,
+				xhrSubstitute: this.xhrSubstitute,
+				backendService: this.backendService,
+			});
+
+			setTimeout(() => {
+				autoSelectDepartment.helpPeopleToSelectDesiredDepartment();
+			}, 1000);
+		}
 	}
 
 	loadRequestConfig()
@@ -2332,9 +2409,11 @@ class LocationSearch {
 		if (!response || !response.Success || !response.Results) {
 
 			this.resultTable.changeStatusAsError();
+			this.backendService.notify('reloadPage');
 
 			return;
 		}
+		this.runAutoSelectDepartment();
 
 		if (!this.hasResultDateInLocationName(response.Results[0])) {
 			console.warn("Can't find date in location name");
@@ -2372,7 +2451,10 @@ class LocationSearch {
 				return;
 			}
 
-			this.addDepartmentToResultTable(departmentInfo);
+			if (!this.configDepartments.length || this.configDepartments.includes(departmentInfo.ServiceId))
+			{
+				this.addDepartmentToResultTable(departmentInfo);
+			}
 		});
 
 		console.log('WAITING FOR NEXT REQUEST', Date.now(), Date.now() + TIMEOUT);
@@ -2403,14 +2485,14 @@ class LocationSearch {
 		if (!date)
 		{
 			this.resultTable.appendResult({
-				href: `https://piba.myvisit.com/#!/home/service/${department.ServiceId}`,
+				href: `https://piba.myvisit.com/#!/home/provider/56?d=${department.ServiceId}`,
 				name: label,
 			})
 		}
 		else
 		{
 			this.resultTable.appendResult({
-				href: `https://piba.myvisit.com/#!/home/service/${department.ServiceId}`,
+				href: `https://piba.myvisit.com/#!/home/provider/56?d=${department.ServiceId}`,
 				name: label,
 				date: date,
 				serviceId: department.ServiceId,
@@ -2931,45 +3013,6 @@ class FinderSlots
 		// this.departments.highlightAddress(department, highlightData);
 	}
 }
-;// CONCATENATED MODULE: ./src/page-worker/auto-select-department.js
-class AutoSelectDepartment {
-    constructor(id, {departments, xhrSubstitute, backendService}) {
-        this.desiredDepartmentId = id;
-        /** @type {Departments} */
-        this.departments = departments;
-        /** @type {XhrSubstitute} */
-        this.xhrSubstitute = xhrSubstitute;
-        /** @type {BackendService} */
-        this.backendService = backendService;
-
-        this.xhrSubstitute.addHandler('https://central.myvisit.com/CentralAPI/AppointmentSet', (url, response) => {
-            this.handleAppointmentSetResponse(url, JSON.parse(response));
-        });
-        this.xhrSubstitute.addHandler('https://piba-api.myvisit.com/CentralAPI/AppointmentSet', (url, response) => {
-            this.handleAppointmentSetResponse(url, JSON.parse(response));
-        });
-    }
-
-    helpPeopleToSelectDesiredDepartment() {
-        this.departments.clickOnDepartment(this.desiredDepartmentId);
-    }
-
-    handleAppointmentSetResponse(queryUrl, response) {
-        if (!response.Success) {
-            return;
-        }
-        if (response.Results?.ServiceId == this.desiredDepartmentId) {
-            const departmentInfo = this.departments.getDepartmentById(this.desiredDepartmentId);
-            this.backendService.notify('appointmentGot', {
-                department: {
-                    serviceId: departmentInfo.ServiceId,
-                    name: departmentInfo.Label,
-                },
-                date: response.Results.ReferenceDate,
-            })
-        }
-    }
-}
 ;// CONCATENATED MODULE: ./src/page-worker/prepare-visit.js
 class PrepareVisit
 {
@@ -3164,21 +3207,13 @@ xhrSubstitute.substitute();
 	const departments = new Departments();
 
 	const locationSearch = new LocationSearch(
-		{departments, resultTable, xhrSubstitute, backendService}
+		{departments, resultTable, xhrSubstitute, backendService, configDepartments}
 	);
 
 	locationSearch.fallbackWhenDateNotInLabel((locationResponse) => {
-		const desiredDepartmentId = getSyncValue('desiredDepartmentId');
-		if (desiredDepartmentId) {
-			const autoSelectDepartment = new AutoSelectDepartment(desiredDepartmentId, {departments, xhrSubstitute, backendService});
-			setTimeout(() => {
-				autoSelectDepartment.helpPeopleToSelectDesiredDepartment();
-			}, 1000);
-		} else {
-			departments.setOriginalOrderByLocationResponse(locationResponse);
-			const finderSlots = new FinderSlots({departments, resultTable, backendService, prepareVisit, configDepartments});
-			finderSlots.start();
-		}
+		departments.setOriginalOrderByLocationResponse(locationResponse);
+		const finderSlots = new FinderSlots({departments, resultTable, backendService, prepareVisit, configDepartments});
+		finderSlots.start();
 	});
 
 	delete document.documentElement.dataset.gifPath;
